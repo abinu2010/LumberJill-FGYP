@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5e3a9f86b94436e44bc85486453f318c, type: 3}
+  m_Name: Recipe_JewelleryBox
+  m_EditorClassIdentifier: 
+  id: Jewellery
+  displayName: Jewellery Box
+  finishedProduct: {fileID: 11400000, guid: f2fd7fe0610595745857c011ddd169ca, type: 2}
+  blueprint: {fileID: 0}
+  slots:
+  - slotId: Lid
+    label: Lid
+    requiredWidth: 2
+    requiredHeight: 2
+  - slotId: Box
+    label: Box
+    requiredWidth: 2
+    requiredHeight: 3
+  unlockedByDefault: 0
+  unlockCost: 25
+  hintSprite: {fileID: -124080745, guid: 0529001915e1a8b43bf7e5c1d6e1eb50, type: 3}

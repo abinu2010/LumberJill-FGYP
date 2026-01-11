@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5e3a9f86b94436e44bc85486453f318c, type: 3}
+  m_Name: Recipe_Cupboard
+  m_EditorClassIdentifier: 
+  id: Cupboard
+  displayName: Cupboard
+  finishedProduct: {fileID: 11400000, guid: 1431fe71eb7cc004fb70118c9bb1e0e4, type: 2}
+  blueprint: {fileID: 0}
+  slots:
+  - slotId: Back
+    label: Back
+    requiredWidth: 6
+    requiredHeight: 8
+  - slotId: Bottom
+    label: Bottom
+    requiredWidth: 6
+    requiredHeight: 4
+  - slotId: Side1
+    label: Side1
+    requiredWidth: 4
+    requiredHeight: 8
+  - slotId: Side2
+    label: Side2
+    requiredWidth: 4
+    requiredHeight: 8
+  - slotId: Top
+    label: Top
+    requiredWidth: 6
+    requiredHeight: 2
+  - slotId: Shelf1
+    label: Shelf1
+    requiredWidth: 6
+    requiredHeight: 2
+  - slotId: Shelf2
+    label: Shelf1
+    requiredWidth: 6
+    requiredHeight: 2
+  unlockedByDefault: 0
+  unlockCost: 200
+  hintSprite: {fileID: 2007593058, guid: 0529001915e1a8b43bf7e5c1d6e1eb50, type: 3}

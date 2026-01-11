@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: bfd7a6dcc9fa10b469b69d54c0d1f8e2
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - inventory: {instanceID: 0}
+  - saplingSprite: {fileID: 21300000, guid: ce9a5e03dde352b40b0a5bf9703fefad, type: 3}
+  - youngTreeSprite: {instanceID: 0}
+  - matureTreeSprite: {instanceID: 0}
+  - choppedTreeSprite: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

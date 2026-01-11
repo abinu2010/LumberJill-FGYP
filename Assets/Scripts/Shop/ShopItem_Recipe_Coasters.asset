@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d567830ac9642f84da0a528aaf803d77, type: 3}
+  m_Name: ShopItem_Recipe_Coasters
+  m_EditorClassIdentifier: 
+  id: Coasters
+  displayName: Coasters Recipe
+  icon: {fileID: -1682907721, guid: 0529001915e1a8b43bf7e5c1d6e1eb50, type: 3}
+  price: 10
+  type: 3
+  item: {fileID: 11400000, guid: 8ff54d506c75fd84d85bffc599212901, type: 2}
+  itemCount: 1
+  prefabToPlace: {fileID: 0}
+  recipeToUnlock: {fileID: 11400000, guid: f6cf8c6d6dfa8474e944e6b7042d656a, type: 2}
+  singlePurchase: 1

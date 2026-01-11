@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5e3a9f86b94436e44bc85486453f318c, type: 3}
+  m_Name: Recipe_PictureFrame
+  m_EditorClassIdentifier: 
+  id: Picture
+  displayName: PictureFrame
+  finishedProduct: {fileID: 11400000, guid: e704a74363b0df949bf3c03800733f0d, type: 2}
+  blueprint: {fileID: 0}
+  slots:
+  - slotId: Frame 1
+    label: 'Frame 1 '
+    requiredWidth: 1
+    requiredHeight: 3
+  - slotId: Frame 2
+    label: Frame 2
+    requiredWidth: 1
+    requiredHeight: 3
+  - slotId: Frame 3
+    label: Frame 3
+    requiredWidth: 1
+    requiredHeight: 4
+  - slotId: Frame 4
+    label: Frame 4
+    requiredWidth: 1
+    requiredHeight: 4
+  - slotId: Back
+    label: Back
+    requiredWidth: 3
+    requiredHeight: 4
+  unlockedByDefault: 0
+  unlockCost: 25
+  hintSprite: {fileID: -1103552306, guid: 0529001915e1a8b43bf7e5c1d6e1eb50, type: 3}

@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d567830ac9642f84da0a528aaf803d77, type: 3}
+  m_Name: ShopItem_Recipe_CoatHanger
+  m_EditorClassIdentifier: 
+  id: Coat
+  displayName: Coat Hanger Recipe
+  icon: {fileID: -1186859292, guid: 0529001915e1a8b43bf7e5c1d6e1eb50, type: 3}
+  price: 10
+  type: 3
+  item: {fileID: 11400000, guid: c1fe39744743f6d45a41e4a4a5ae234b, type: 2}
+  itemCount: 1
+  prefabToPlace: {fileID: 0}
+  recipeToUnlock: {fileID: 11400000, guid: e7f2be555bb447b479ee47114eb469d9, type: 2}
+  singlePurchase: 1

@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5e3a9f86b94436e44bc85486453f318c, type: 3}
+  m_Name: Recipe_CoatHanger
+  m_EditorClassIdentifier: 
+  id: Coat
+  displayName: Coat Hanger
+  finishedProduct: {fileID: 11400000, guid: c1fe39744743f6d45a41e4a4a5ae234b, type: 2}
+  blueprint: {fileID: 0}
+  slots:
+  - slotId: Back
+    label: Back
+    requiredWidth: 4
+    requiredHeight: 2
+  - slotId: Hook 1
+    label: 'Hook 1 '
+    requiredWidth: 1
+    requiredHeight: 2
+  - slotId: Hook 2
+    label: Hook 2
+    requiredWidth: 1
+    requiredHeight: 2
+  - slotId: Hook 3
+    label: 'Hook 3 '
+    requiredWidth: 1
+    requiredHeight: 2
+  - slotId: Hook 4
+    label: 'Hook 4 '
+    requiredWidth: 1
+    requiredHeight: 2
+  - slotId: Hook 5
+    label: 'Hook 5 '
+    requiredWidth: 1
+    requiredHeight: 2
+  unlockedByDefault: 0
+  unlockCost: 25
+  hintSprite: {fileID: -1186859292, guid: 0529001915e1a8b43bf7e5c1d6e1eb50, type: 3}

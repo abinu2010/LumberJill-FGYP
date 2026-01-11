@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d567830ac9642f84da0a528aaf803d77, type: 3}
+  m_Name: ShopItem_Recipe_Chair
+  m_EditorClassIdentifier: 
+  id: Chair
+  displayName: Chair Recipe
+  icon: {fileID: 1128375832, guid: 0529001915e1a8b43bf7e5c1d6e1eb50, type: 3}
+  price: 10
+  type: 3
+  item: {fileID: 11400000, guid: f311d6627e17d20419101a8823e10a02, type: 2}
+  itemCount: 1
+  prefabToPlace: {fileID: 0}
+  recipeToUnlock: {fileID: 11400000, guid: e38abd9888ea0a343b386451a2701b49, type: 2}
+  singlePurchase: 1

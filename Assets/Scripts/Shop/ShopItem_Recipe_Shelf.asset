@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d567830ac9642f84da0a528aaf803d77, type: 3}
+  m_Name: ShopItem_Recipe_Shelf
+  m_EditorClassIdentifier: 
+  id: Shelf
+  displayName: Shelf Recipe
+  icon: {fileID: 1526619182, guid: 0529001915e1a8b43bf7e5c1d6e1eb50, type: 3}
+  price: 10
+  type: 3
+  item: {fileID: 11400000, guid: 55ab5dd71c31bde4a8204eaaf33a9f23, type: 2}
+  itemCount: 1
+  prefabToPlace: {fileID: 0}
+  recipeToUnlock: {fileID: 11400000, guid: 43fcc715fc7fd8f41b9f62ccc2625f7c, type: 2}
+  singlePurchase: 1

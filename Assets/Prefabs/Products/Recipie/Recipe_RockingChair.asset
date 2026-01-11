@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5e3a9f86b94436e44bc85486453f318c, type: 3}
+  m_Name: Recipe_RockingChair
+  m_EditorClassIdentifier: 
+  id: Rocking
+  displayName: Rocking Chair
+  finishedProduct: {fileID: 11400000, guid: e79feb8514318bd478a6b13da9dc79e3, type: 2}
+  blueprint: {fileID: 0}
+  slots:
+  - slotId: Back
+    label: Back
+    requiredWidth: 4
+    requiredHeight: 4
+  - slotId: Seat
+    label: Seat
+    requiredWidth: 4
+    requiredHeight: 3
+  - slotId: Arm 1
+    label: Arm 1
+    requiredWidth: 2
+    requiredHeight: 4
+  - slotId: Arm 2
+    label: Arm 2
+    requiredWidth: 2
+    requiredHeight: 4
+  - slotId: Leg 1
+    label: 'Leg 1 '
+    requiredWidth: 4
+    requiredHeight: 4
+  - slotId: Leg 2
+    label: 'Leg 2 '
+    requiredWidth: 4
+    requiredHeight: 4
+  unlockedByDefault: 0
+  unlockCost: 150
+  hintSprite: {fileID: 1847238010, guid: 0529001915e1a8b43bf7e5c1d6e1eb50, type: 3}

@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d567830ac9642f84da0a528aaf803d77, type: 3}
+  m_Name: ShopItem_Recipe_BirdHouse
+  m_EditorClassIdentifier: 
+  id: Bird
+  displayName: Bird House Recipe
+  icon: {fileID: -2021232642, guid: 0529001915e1a8b43bf7e5c1d6e1eb50, type: 3}
+  price: 10
+  type: 3
+  item: {fileID: 11400000, guid: c09098d23236549469698fec8473d54f, type: 2}
+  itemCount: 1
+  prefabToPlace: {fileID: 0}
+  recipeToUnlock: {fileID: 11400000, guid: 19d3cb885d335b14fa85da9e1c9632ab, type: 2}
+  singlePurchase: 1

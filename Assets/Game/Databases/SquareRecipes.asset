@@ -1,0 +1,195 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 10811f3ab15611645a8895091528deaa, type: 3}
+  m_Name: SquareRecipes
+  m_EditorClassIdentifier: 
+  entries:
+  - width: 1
+    height: 1
+    item: {fileID: 11400000, guid: 73c50da72533dff438fdd80ba22e6e4e, type: 2}
+    planksCost: 1
+    seconds: 0.75
+  - width: 1
+    height: 2
+    item: {fileID: 11400000, guid: fcab010550e32e14aa6cff0276944f74, type: 2}
+    planksCost: 1
+    seconds: 1.5
+  - width: 1
+    height: 3
+    item: {fileID: 11400000, guid: 5e2802db9fa875640a19f4a8e4f1ce8e, type: 2}
+    planksCost: 1
+    seconds: 2.25
+  - width: 1
+    height: 4
+    item: {fileID: 11400000, guid: 9f047f96d8503cc4db9acc59f6bc2961, type: 2}
+    planksCost: 1
+    seconds: 3
+  - width: 1
+    height: 5
+    item: {fileID: 11400000, guid: da38753299d90d94b8c61fd08ef321e6, type: 2}
+    planksCost: 1
+    seconds: 3.75
+  - width: 1
+    height: 6
+    item: {fileID: 11400000, guid: faabf8b0aed58454d9581d7e072714b6, type: 2}
+    planksCost: 1
+    seconds: 4.5
+  - width: 1
+    height: 7
+    item: {fileID: 11400000, guid: 7e57a1fd040250d499467ff686da2cfa, type: 2}
+    planksCost: 1
+    seconds: 5.25
+  - width: 1
+    height: 8
+    item: {fileID: 11400000, guid: 18ae1ae68a3017846983c521861cc94a, type: 2}
+    planksCost: 1
+    seconds: 6
+  - width: 2
+    height: 2
+    item: {fileID: 11400000, guid: 8a4b3f6bb66d2d248a772de8155adf3f, type: 2}
+    planksCost: 2
+    seconds: 3
+  - width: 2
+    height: 3
+    item: {fileID: 11400000, guid: ba6b8e9da94b7584fbf0b002640b239d, type: 2}
+    planksCost: 2
+    seconds: 4.5
+  - width: 2
+    height: 4
+    item: {fileID: 11400000, guid: 1e9bb6350449feb488df4889860ccee6, type: 2}
+    planksCost: 2
+    seconds: 6
+  - width: 2
+    height: 5
+    item: {fileID: 11400000, guid: 19008a7df336b6d49958fb1f567474bf, type: 2}
+    planksCost: 2
+    seconds: 7.5
+  - width: 2
+    height: 6
+    item: {fileID: 11400000, guid: 50bd291d60ea148458ed5baaabe87808, type: 2}
+    planksCost: 2
+    seconds: 9
+  - width: 2
+    height: 7
+    item: {fileID: 11400000, guid: c982facff1996944f81a06b1ad38040c, type: 2}
+    planksCost: 2
+    seconds: 10.5
+  - width: 2
+    height: 8
+    item: {fileID: 11400000, guid: be875679128c49c41867607cf81d92bc, type: 2}
+    planksCost: 2
+    seconds: 12
+  - width: 3
+    height: 3
+    item: {fileID: 11400000, guid: 4c1e954922c811d4c850e2ee09f7c78c, type: 2}
+    planksCost: 3
+    seconds: 6.75
+  - width: 3
+    height: 4
+    item: {fileID: 11400000, guid: 4ad360b0fc46dc047a150e24a60efad9, type: 2}
+    planksCost: 3
+    seconds: 9
+  - width: 3
+    height: 5
+    item: {fileID: 11400000, guid: fa09366dddc816b46b80a1fc5ada4b4f, type: 2}
+    planksCost: 3
+    seconds: 11.25
+  - width: 3
+    height: 6
+    item: {fileID: 11400000, guid: 36bca611b36da5446879086d6738cfe9, type: 2}
+    planksCost: 3
+    seconds: 13.5
+  - width: 3
+    height: 7
+    item: {fileID: 11400000, guid: 537366446eb438848a75de0d1913966a, type: 2}
+    planksCost: 3
+    seconds: 15.75
+  - width: 3
+    height: 8
+    item: {fileID: 11400000, guid: aa208d2da1c01c945aab035b04280259, type: 2}
+    planksCost: 3
+    seconds: 18
+  - width: 4
+    height: 4
+    item: {fileID: 11400000, guid: abc0623b948f75b438892a6c71fa0125, type: 2}
+    planksCost: 4
+    seconds: 12
+  - width: 4
+    height: 5
+    item: {fileID: 11400000, guid: b60e2866f05ffa347a4d5f808e8fea0c, type: 2}
+    planksCost: 4
+    seconds: 15
+  - width: 4
+    height: 6
+    item: {fileID: 11400000, guid: 711afe51096c0ff46b99b6dca1a3def9, type: 2}
+    planksCost: 4
+    seconds: 18
+  - width: 4
+    height: 7
+    item: {fileID: 11400000, guid: d8dd33c29c5f1e74587af1acfad53b7b, type: 2}
+    planksCost: 4
+    seconds: 21
+  - width: 4
+    height: 8
+    item: {fileID: 11400000, guid: b8fc7bc584fd46944872e58df7f1700f, type: 2}
+    planksCost: 4
+    seconds: 24
+  - width: 5
+    height: 5
+    item: {fileID: 11400000, guid: 9c15b112836ba6240ae0945e28148ac9, type: 2}
+    planksCost: 5
+    seconds: 18.75
+  - width: 5
+    height: 6
+    item: {fileID: 11400000, guid: 90e800dc25e153f48837feefa577a1c8, type: 2}
+    planksCost: 5
+    seconds: 22.5
+  - width: 5
+    height: 7
+    item: {fileID: 11400000, guid: b4bbbfa278ebb994da4365df2ef36089, type: 2}
+    planksCost: 5
+    seconds: 26.25
+  - width: 5
+    height: 8
+    item: {fileID: 11400000, guid: 1bf9c87ea1e576d4eb3490a738dd5490, type: 2}
+    planksCost: 5
+    seconds: 30
+  - width: 6
+    height: 6
+    item: {fileID: 11400000, guid: 4ea38bcf84a3638428332b518d155bd2, type: 2}
+    planksCost: 6
+    seconds: 27
+  - width: 6
+    height: 7
+    item: {fileID: 11400000, guid: 45708a106a272e840b66cbff6114cc48, type: 2}
+    planksCost: 6
+    seconds: 31.5
+  - width: 6
+    height: 8
+    item: {fileID: 11400000, guid: f526636d509a5924082192606ec308cc, type: 2}
+    planksCost: 6
+    seconds: 36
+  - width: 7
+    height: 7
+    item: {fileID: 11400000, guid: 26e7773941f44e44b8bec88d21bf3443, type: 2}
+    planksCost: 7
+    seconds: 36.75
+  - width: 7
+    height: 8
+    item: {fileID: 11400000, guid: c43d3fc6b6937e343a3dc77fd895ea46, type: 2}
+    planksCost: 7
+    seconds: 42
+  - width: 8
+    height: 8
+    item: {fileID: 11400000, guid: ada0bbc92d374f248831e978117eeb38, type: 2}
+    planksCost: 8
+    seconds: 48
