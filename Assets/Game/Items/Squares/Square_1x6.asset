@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Square_1x6
   m_EditorClassIdentifier: 
   id: square_1x6
-  displayName: "Square 1\xD76"
+  displayName: "Square 1\uFFFD6"
   icon: {fileID: 21300000, guid: 647025f19657e1f4481b333e3e03a29f, type: 3}
   category: 0
   maxStack: 20
