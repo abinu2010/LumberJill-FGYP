@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: square_7x8
   displayName: "Square 7\uFFFD8"
-  icon: {fileID: 21300000, guid: 73a2ad15b300db541a5a5ba0e6372933, type: 3}
+  icon: {fileID: 0}
   category: 0
   maxStack: 20
-  gridWidth: 7
-  gridHeight: 8
-  isProductionSquarePiece: 1
+  gridWidth: 1
+  gridHeight: 1
+  isProductionSquarePiece: 0
   worldPrefab: {fileID: 0}
