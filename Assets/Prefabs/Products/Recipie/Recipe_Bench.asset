@@ -17,10 +17,10 @@ MonoBehaviour:
   finishedProduct: {fileID: 11400000, guid: 1be185f2966a90b49a3bf83e60ece9a4, type: 2}
   blueprint: {fileID: 0}
   slots:
-  - slotId: 1
-    label: 1
-    requiredWidth: 1
-    requiredHeight: 1
+  - slotId: Bench
+    label: Bench One piece
+    requiredWidth: 2
+    requiredHeight: 2
   unlockedByDefault: 1
   unlockCost: 150
   hintSprite: {fileID: 1560589445, guid: 0529001915e1a8b43bf7e5c1d6e1eb50, type: 3}

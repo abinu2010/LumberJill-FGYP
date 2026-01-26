@@ -470,22 +470,21 @@ public class JobManager : MonoBehaviour
 
     void HandleJobResolved(JobOrder job, bool succeeded)
     {
+        if (job == null) return;
+
         if (!succeeded)
         {
-            //for failure reduce
             Inventory inv = FindFirstObjectByType<Inventory>();
             if (inv != null)
             {
-                // Reduce money by 50 
                 inv.AddMoney(-50f);
-
-                // Reduce XP by 10
                 inv.AddXp(-10);
             }
-            // Remove failed job from active list
-            if (activeJobs.Contains(job))
-                activeJobs.Remove(job);
         }
+
+        if (activeJobs.Contains(job))
+            activeJobs.Remove(job);
+
         if (job.slotIndex >= 0)
         {
             SpawnNewJobForSlot(job.slotIndex);
@@ -493,6 +492,7 @@ public class JobManager : MonoBehaviour
 
         NotifyChanged();
     }
+
     void SpawnNewJobForSlot(int slotIndex)
     {
         CustomerKind kind = GetRandomCustomerKind();

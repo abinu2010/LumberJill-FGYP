@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Square_2x5
   m_EditorClassIdentifier: 
   id: square_2x5
-  displayName: "Square 2\xD75"
+  displayName: "Square 2\uFFFD5"
   icon: {fileID: 21300000, guid: 5460dc8384510dc4698c9a441be0f526, type: 3}
   category: 0
   maxStack: 20

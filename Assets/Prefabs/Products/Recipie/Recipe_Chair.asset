@@ -19,6 +19,10 @@ MonoBehaviour:
   slots:
   - slotId: BackRest
     label: BackRest
+    requiredWidth: 2
+    requiredHeight: 2
+  - slotId: Leg
+    label: Leg
     requiredWidth: 1
     requiredHeight: 1
   unlockedByDefault: 0

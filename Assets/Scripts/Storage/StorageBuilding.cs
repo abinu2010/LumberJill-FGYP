@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using TMPro;
 using System.Collections.Generic;
@@ -18,6 +19,10 @@ public class StorageBuilding : MonoBehaviour
     private GameObject window;
     private GameObject button;
     private RectTransform buttonRect;
+    public UnityEvent Opened;
+    public UnityEvent Closed;
+    public bool IsOpen => window != null && window.activeSelf;
+
 
     void Awake()
     {
@@ -132,8 +137,9 @@ public class StorageBuilding : MonoBehaviour
 
         button = null;
         buttonRect = null;
-
         PlayerController.IsInputLocked = true;
+        Opened?.Invoke();
+
     }
 
     public void CloseWindow()
@@ -142,6 +148,8 @@ public class StorageBuilding : MonoBehaviour
             window.SetActive(false);
 
         PlayerController.IsInputLocked = false;
+        Closed?.Invoke();
+
     }
 
     void OnDisable()
