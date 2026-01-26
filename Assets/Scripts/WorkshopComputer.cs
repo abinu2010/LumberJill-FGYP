@@ -8,7 +8,10 @@ public class WorkshopComputer : MonoBehaviour
     public GameShopPanelUI shopPanel;
     public StockMarket stockMarket;
 
+    public bool closeComputerPanelWhenOpeningApps = false;
+
     bool panelOpen;
+
     public UnityEvent ShopOpened;
     public UnityEvent StockMarketOpened;
 
@@ -16,52 +19,62 @@ public class WorkshopComputer : MonoBehaviour
     {
         if (PlayerController.IsInputLocked) return;
         if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
-
         ToggleComputerPanel();
     }
 
     public void ToggleComputerPanel()
     {
         panelOpen = !panelOpen;
-        if (panelOpen) 
+
+        if (panelOpen)
         {
             UIManager.Instance.Open(computerPanel);
-            Debug.Log("computer panel toggled");
         }
-        else UIManager.Instance.Close(computerPanel);
-    }
-
-    public void OnStockMarketButtonClicked()
-    {
-        // Open stock market UI first to avoid the close consuming the click
-        if (stockMarket != null)
+        else
         {
-            stockMarket.toggleStockMarketUI();
-            StockMarketOpened?.Invoke();
-        }
-        if (UIManager.Instance != null)
             UIManager.Instance.Close(computerPanel);
-        panelOpen = false;
+        }
     }
 
     public void OnShopButtonClicked()
     {
-        // Open shop UI before closing the computer panel to ensure the click is delivered
         if (shopPanel != null)
         {
             shopPanel.Open();
             ShopOpened?.Invoke();
         }
-            
-        if (UIManager.Instance != null)
-            UIManager.Instance.Close(computerPanel);
-        panelOpen = false;
+
+        if (closeComputerPanelWhenOpeningApps)
+        {
+            if (UIManager.Instance != null)
+                UIManager.Instance.Close(computerPanel);
+
+            panelOpen = false;
+        }
+    }
+
+    public void OnStockMarketButtonClicked()
+    {
+        if (stockMarket != null)
+        {
+            stockMarket.toggleStockMarketUI();
+            StockMarketOpened?.Invoke();
+        }
+
+        if (closeComputerPanelWhenOpeningApps)
+        {
+            if (UIManager.Instance != null)
+                UIManager.Instance.Close(computerPanel);
+
+            panelOpen = false;
+        }
     }
 
     public void OnCloseComputerPanel()
     {
         if (UIManager.Instance != null)
             UIManager.Instance.Close(computerPanel);
+
         panelOpen = false;
     }
 }
