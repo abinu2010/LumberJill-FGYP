@@ -502,7 +502,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: -4.0618896, y: 210.40245, z: 0, w: 0}
+  m_margin: {x: -4.0618896, y: 427.13953, z: 0, w: -179.40955}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -3963,6 +3963,18 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: f26e50e8dcde1de4f982eba2173c43b7, type: 2}
+    - target: {fileID: 7371732429512840040, guid: 0356beb2987e3034eaceb272c019c3a0, type: 3}
+      propertyPath: startingItems.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7371732429512840040, guid: 0356beb2987e3034eaceb272c019c3a0, type: 3}
+      propertyPath: startingItems.Array.data[0].item
+      value: 
+      objectReference: {fileID: 11400000, guid: 9fa7d8845649900449c74ac02b04aa97, type: 2}
+    - target: {fileID: 7371732429512840040, guid: 0356beb2987e3034eaceb272c019c3a0, type: 3}
+      propertyPath: startingItems.Array.data[0].count
+      value: 20
+      objectReference: {fileID: 0}
     - target: {fileID: 7591871327088826207, guid: 0356beb2987e3034eaceb272c019c3a0, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
@@ -4636,7 +4648,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: -4.0618896, y: 210.40245, z: 0, w: 0}
+  m_margin: {x: -4.0618896, y: 210.40245, z: 0, w: 42.55298}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -7103,6 +7115,14 @@ PrefabInstance:
     - target: {fileID: 3505227347278084306, guid: f5febf8a32892934ba2b594040108ca5, type: 3}
       propertyPath: m_Name
       value: Timer01
+      objectReference: {fileID: 0}
+    - target: {fileID: 4291073311261176920, guid: f5febf8a32892934ba2b594040108ca5, type: 3}
+      propertyPath: m_margin.w
+      value: -78.64722
+      objectReference: {fileID: 0}
+    - target: {fileID: 4291073311261176920, guid: f5febf8a32892934ba2b594040108ca5, type: 3}
+      propertyPath: m_margin.y
+      value: 317.4694
       objectReference: {fileID: 0}
     - target: {fileID: 4775290633991181408, guid: f5febf8a32892934ba2b594040108ca5, type: 3}
       propertyPath: m_Name
