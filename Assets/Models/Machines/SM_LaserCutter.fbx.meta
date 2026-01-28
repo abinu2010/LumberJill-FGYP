@@ -8,27 +8,27 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: M_Button_Black
-    second: {fileID: 2100000, guid: 8c93a85dd09a70448bba17b3b9f50ef0, type: 2}
+    second: {fileID: 2100000, guid: d8044ef9b3762794b86c74638e187961, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: M_Button_Red
-    second: {fileID: 2100000, guid: 7086e3a02edd4bc4293df7db3b693bde, type: 2}
+    second: {fileID: 2100000, guid: f1753549db93cf4408b593ba3805e246, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: M_LaserCutter_Bed
-    second: {fileID: 2100000, guid: 4a6d325b93f32b440955eb9b655b7db2, type: 2}
+    second: {fileID: 2100000, guid: f26e50e8dcde1de4f982eba2173c43b7, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: M_LaserCutter_Laser
-    second: {fileID: 2100000, guid: dc86296a5c7c8394e9aaa4e5d16d7fac, type: 2}
+    second: {fileID: 2100000, guid: de67e52d09bbfad4082db5ca2beea97b, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: M_LaserCutter_Main
-    second: {fileID: 2100000, guid: 196d02956fb4beb47985647ccbb0a9b7, type: 2}
+    second: {fileID: 2100000, guid: de67e52d09bbfad4082db5ca2beea97b, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

@@ -3,7 +3,17 @@ guid: a94f5c68a39e4ab4780060b4b6dca927
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Material.026
+    second: {fileID: 2100000, guid: d8044ef9b3762794b86c74638e187961, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: WheelyBinYellow
+    second: {fileID: 2100000, guid: 7d2cb3432be0714429e9087b7ce773dd, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

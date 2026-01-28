@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: square_3x8
   displayName: "Square 3\uFFFD8"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: a05527339cb9e464992e0a8fc644363e, type: 3}
   category: 0
   maxStack: 20
   gridWidth: 1
