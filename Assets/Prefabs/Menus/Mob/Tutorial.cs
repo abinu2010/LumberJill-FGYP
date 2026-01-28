@@ -86,16 +86,8 @@ public class Tutorial : MonoBehaviour
     private WorkshopComputer wc;
     private CanvasGroup cg;
 
-    const string PREF_TUTORIAL_DONE = "TutorialCompleted";
-    bool tutorialJobSpawned = false;
-
     void Start()
     {
-        if (PlayerPrefs.GetInt(PREF_TUTORIAL_DONE, 0) == 1)
-        {
-            tutorialCompleted = true;
-        }
-
         if (tutorialCompleted)
         {
             gameObject.SetActive(false);
@@ -199,8 +191,8 @@ public class Tutorial : MonoBehaviour
                 storageBuilding.Opened.AddListener(OnStorageOpened);
             }
         }
-    }
 
+    }
     void OnStorageOpened()
     {
         if (currentStage != 3) return;
@@ -213,7 +205,6 @@ public class Tutorial : MonoBehaviour
         SetDialogue(true);
         StorageUITutorial();
     }
-
     bool HasEnoughWoodInHotbar()
     {
         if (woodItemSO == null) return false;
@@ -234,25 +225,12 @@ public class Tutorial : MonoBehaviour
         if (jm == null) return false;
 
         var jobs = jm.ActiveJobs;
-
-        bool foundTutorial = false;
-
         for (int i = 0; i < jobs.Count; i++)
         {
             var j = jobs[i];
-            if (j == null) continue;
-
-            if (j.id == "JOB_TUTORIAL")
-            {
-                foundTutorial = true;
-                if (j.isCompleted) return true;
-                return false;
-            }
+            if (j != null && j.id == "JOB_TUTORIAL" && j.isCompleted)
+                return true;
         }
-
-        if (tutorialJobSpawned && !foundTutorial)
-            return true;
-
         return false;
     }
 
@@ -262,7 +240,6 @@ public class Tutorial : MonoBehaviour
         cg.blocksRaycasts = on;
         cg.interactable = on;
     }
-
     bool RequiredShopBuysComplete()
     {
         if (requiredShopItemIds == null || requiredShopItemIds.Length == 0) return true;
@@ -279,6 +256,7 @@ public class Tutorial : MonoBehaviour
         return true;
     }
 
+
     void Update()
     {
         bool pressed = false;
@@ -291,7 +269,6 @@ public class Tutorial : MonoBehaviour
         if (!pressed && Input.GetMouseButtonDown(0)) pressed = true;
         if (!pressed) return;
         if (!tutorialTextActive && !waitingForStorageOpen && !waitingForWoodInHotbar && !waitingForTutorialJobComplete && !showingTutorialEndMessage) return;
-
         if (waitingForShopPurchases)
         {
             if (!RequiredShopBuysComplete()) return;
@@ -313,6 +290,7 @@ public class Tutorial : MonoBehaviour
             StockIntro();
             return;
         }
+
 
         dialogueIndex++;
 
@@ -367,7 +345,6 @@ public class Tutorial : MonoBehaviour
                 TutorialEndMessage();
                 return;
             }
-
             if (!visitedStorageForWood)
             {
                 if (dialogueIndex == 2 && !waitingForStorageOpen && !waitingForWoodInHotbar)
@@ -380,6 +357,7 @@ public class Tutorial : MonoBehaviour
                 StorageUITutorial();
                 return;
             }
+
 
             if (showingTutorialEndMessage)
             {
@@ -671,7 +649,6 @@ public class Tutorial : MonoBehaviour
             }
 
             jobManager.AddJob(tutorialJob);
-            tutorialJobSpawned = true;
         }
     }
 
@@ -862,6 +839,7 @@ public class Tutorial : MonoBehaviour
         dialogueIndex = 5;
     }
 
+
     void StockIntro()
     {
         if (currentStage != 2) return;
@@ -919,6 +897,7 @@ public class Tutorial : MonoBehaviour
             SetDialogue(true);
             StorageUITutorial();
             return;
+
         }
     }
 
@@ -994,7 +973,6 @@ public class Tutorial : MonoBehaviour
         waitingForTutorialJobComplete = true;
         showingTutorialEndMessage = false;
     }
-
     void RestoreNormalCustomers()
     {
         var jobManager = FindFirstObjectByType<JobManager>();
@@ -1019,11 +997,11 @@ public class Tutorial : MonoBehaviour
 
         SetDialogue(false);
         tutorialCompleted = true;
-        PlayerPrefs.SetInt(PREF_TUTORIAL_DONE, 1);
-        PlayerPrefs.Save();
         RestoreNormalCustomers();
         gameObject.SetActive(false);
     }
+
+
 
     void SetWorldArrow(GameObject root, bool on)
     {
