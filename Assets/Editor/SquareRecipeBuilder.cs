@@ -6,13 +6,11 @@ using System.Linq;
 
 public static class SquareRecipeBuilder
 {
-    // tuning knobs
-    const int MAX_DIM = 8;                     // max size supported
-    const bool UNIQUE_PAIRS = true;            // 2x3 equals 3x2
-    const int PLANKS_PER_WIDTH = 1;            // cost equals width
-    const float SECONDS_FOR_2x2 = 3f;          // baseline craft time
+    const int MAX_DIM = 8;
+    const bool UNIQUE_PAIRS = true;
+    const int PLANKS_PER_WIDTH = 1;
+    const float SECONDS_FOR_2x2 = 3f;
 
-    // project paths
     const string DB_PATH = "Assets/Game/Databases/SquareRecipes.asset";
     const string ITEMS_FOLDER = "Assets/Game/Items/Squares";
     const string ICONS_FOLDER = "Assets/Game/Icons/Squares";
@@ -28,8 +26,6 @@ public static class SquareRecipeBuilder
         db.entries.Clear();
 
         int madeItems = 0;
-        int linkedIcons = 0;
-        int missingIcons = 0;
 
         for (int w = 1; w <= MAX_DIM; w++)
         {
@@ -42,17 +38,9 @@ public static class SquareRecipeBuilder
                 var item = LoadOrCreateItem(a, b, ref madeItems);
                 var sprite = LoadSpriteIfExists(a, b);
 
-                if (sprite)
-                {
-                    if (item.icon != sprite) item.icon = sprite;
-                    linkedIcons++;
-                    //Debug.Log($"[Squares] Icon linked -> Square_{a}x{b} :: {AssetDatabase.GetAssetPath(sprite)}");
-                }
-                else
-                {
-                    missingIcons++;
-                    //Debug.LogWarning($"[Squares] Icon missing -> Square_{a}x{b} expected {ICONS_FOLDER}/Square_{a}x{b}.png");
-                }
+                bool itemDirty = false;
+                if (sprite && item.icon != sprite) { item.icon = sprite; itemDirty = true; }
+                if (itemDirty) EditorUtility.SetDirty(item);
 
                 int cost = Mathf.Max(1, PLANKS_PER_WIDTH * a);
                 float secs = SECONDS_FOR_2x2 * (Mathf.Max(1, a * b) / 4f);
@@ -70,14 +58,13 @@ public static class SquareRecipeBuilder
 
         EditorUtility.SetDirty(db);
         AssetDatabase.SaveAssets();
-        //Debug.Log($"[Squares] DB rebuilt :: entries={db.entries.Count} itemsMade={madeItems} iconsLinked={linkedIcons} iconsMissing={missingIcons}");
     }
 
     [MenuItem("Tools/Squares/Populate Scene Cutters")]
     public static void PopulateCutters()
     {
         var db = AssetDatabase.LoadAssetAtPath<SquareRecipeDB>(DB_PATH);
-        if (!db) { Debug.LogWarning("[Squares] Database missing."); return; }
+        if (!db) return;
 
         var cutters = Object.FindObjectsByType<SquareCutter>(FindObjectsSortMode.None);
         foreach (var sc in cutters)
@@ -98,11 +85,9 @@ public static class SquareRecipeBuilder
             }
 
             EditorUtility.SetDirty(sc);
-            //Debug.Log($"[Squares] Cutter populated -> {sc.name} :: recipes={sc.recipes.Count}");
         }
 
         AssetDatabase.SaveAssets();
-        //Debug.Log($"[Squares] Scene cutters populated :: count={cutters.Length}");
     }
 
     static void EnsureFolders()
@@ -140,16 +125,26 @@ public static class SquareRecipeBuilder
         if (!item)
         {
             item = ScriptableObject.CreateInstance<ItemSO>();
-            item.id = $"square_{a}x{b}";
-            item.displayName = $"Square {a}�{b}";
-            item.category = ItemCategory.Utility;
-            item.maxStack = 20;
             AssetDatabase.CreateAsset(item, path);
             made++;
-            Debug.Log($"[Squares] Item created -> {path}");
         }
 
-        EditorUtility.SetDirty(item);
+        bool dirty = false;
+
+        string expectedId = $"square_{a}x{b}";
+        string expectedName = $"Square {a}x{b}";
+
+        if (item.id != expectedId) { item.id = expectedId; dirty = true; }
+        if (item.displayName != expectedName) { item.displayName = expectedName; dirty = true; }
+        if (item.category != ItemCategory.Utility) { item.category = ItemCategory.Utility; dirty = true; }
+        if (item.maxStack != 20) { item.maxStack = 20; dirty = true; }
+
+        if (item.gridWidth != a) { item.gridWidth = a; dirty = true; }
+        if (item.gridHeight != b) { item.gridHeight = b; dirty = true; }
+        if (!item.isProductionSquarePiece) { item.isProductionSquarePiece = true; dirty = true; }
+
+        if (dirty) EditorUtility.SetDirty(item);
+
         return item;
     }
 
@@ -162,9 +157,7 @@ public static class SquareRecipeBuilder
         var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(iconPath);
         if (!tex) return null;
 
-        var assets = AssetDatabase.LoadAllAssetsAtPath(iconPath)
-                                  .OfType<Sprite>()
-                                  .ToArray();
+        var assets = AssetDatabase.LoadAllAssetsAtPath(iconPath).OfType<Sprite>().ToArray();
         return assets.FirstOrDefault();
     }
 }

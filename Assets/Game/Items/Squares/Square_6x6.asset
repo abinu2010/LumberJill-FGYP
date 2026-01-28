@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: Square_6x6
   m_EditorClassIdentifier: 
   id: square_6x6
-  displayName: "Square 6\uFFFD6"
+  displayName: Square 6x6
   icon: {fileID: 21300000, guid: fc52e4119f9475d48887c05397eb0062, type: 3}
   category: 0
   maxStack: 20
-  gridWidth: 1
-  gridHeight: 1
-  isProductionSquarePiece: 0
+  gridWidth: 6
+  gridHeight: 6
+  isProductionSquarePiece: 1
   worldPrefab: {fileID: 0}
