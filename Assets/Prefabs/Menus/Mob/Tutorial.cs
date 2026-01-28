@@ -647,7 +647,6 @@ public class Tutorial : MonoBehaviour
     void NPCSpawn()
     {
         var jobManager = FindFirstObjectByType<JobManager>();
-        jobManager.SetTutorialMode(true, chairItemSO);
         if (jobManager != null)
         {
             jobManager.customerSlots = 1;
@@ -1001,21 +1000,10 @@ public class Tutorial : MonoBehaviour
         var jobManager = FindFirstObjectByType<JobManager>();
         if (jobManager == null) return;
 
-        jobManager.SetTutorialMode(false, null);
-
         jobManager.customerSlots = 3;
-
-        jobManager.minLinesPerJob = 1;
-        jobManager.maxLinesPerJob = 3;
-        jobManager.minQuantityPerLine = 1;
-        jobManager.maxQuantityPerLine = 4;
-
-        jobManager.ApplyNormalModeDefaults();
-
         jobManager.GenerateInitialJobs();
         jobManager.NotifyChanged();
     }
-
 
     void TutorialEndMessage()
     {
