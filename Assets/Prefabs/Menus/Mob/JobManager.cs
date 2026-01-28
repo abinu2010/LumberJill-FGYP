@@ -93,6 +93,8 @@ public class JobOrder
 
 public class JobManager : MonoBehaviour
 {
+    public const string PREF_TUTORIAL_JOB_DELIVERED = "TutorialJobDelivered";
+
     [Header("Products")]
     public List<ItemSO> productItems = new List<ItemSO>();
 
@@ -120,6 +122,7 @@ public class JobManager : MonoBehaviour
 
     [Header("Customers")]
     public CustomerSpawner worldSpawner;
+
     [SerializeField] private ItemSO chairItemSO;
     [SerializeField] private bool isTutorialMode = false;
 
@@ -159,9 +162,36 @@ public class JobManager : MonoBehaviour
         }
     }
 
+    public void SetTutorialMode(bool on, ItemSO forcedItem)
+    {
+        isTutorialMode = on;
+        if (forcedItem != null) chairItemSO = forcedItem;
+    }
+
+    public void ApplyNormalModeDefaults()
+    {
+        isTutorialMode = false;
+
+        customerSlots = Mathf.Max(1, customerSlots);
+
+        minLinesPerJob = Mathf.Max(1, minLinesPerJob);
+        maxLinesPerJob = Mathf.Max(minLinesPerJob, maxLinesPerJob);
+
+        minQuantityPerLine = Mathf.Max(1, minQuantityPerLine);
+        maxQuantityPerLine = Mathf.Max(minQuantityPerLine, maxQuantityPerLine);
+    }
+
+    public void ClearAllJobs()
+    {
+        availableJobs.Clear();
+        activeJobs.Clear();
+        NotifyChanged();
+    }
+
     public void GenerateInitialJobs()
     {
         availableJobs.Clear();
+
         for (int slot = 0; slot < customerSlots; slot++)
         {
             var kind = GetRandomCustomerKind();
@@ -202,10 +232,7 @@ public class JobManager : MonoBehaviour
                 line.product = GetRandomProduct(used);
             }
 
-            if (line.product != null)
-            {
-                used.Add(line.product);
-            }
+            if (line.product != null) used.Add(line.product);
 
             int qty = GetQuantityFor(kind);
             qty = Mathf.Clamp(qty, minQuantityPerLine, maxQuantityPerLine);
@@ -252,15 +279,11 @@ public class JobManager : MonoBehaviour
     {
         switch (kind)
         {
-            case CustomerKind.Charlie:
-                return 0.7f;
-            case CustomerKind.Sponge:
-                return 0.9f;
-            case CustomerKind.Brandon:
-                return 1.2f;
+            case CustomerKind.Charlie: return 0.7f;
+            case CustomerKind.Sponge: return 0.9f;
+            case CustomerKind.Brandon: return 1.2f;
             case CustomerKind.Gabby:
-            default:
-                return 1f;
+            default: return 1f;
         }
     }
 
@@ -286,12 +309,9 @@ public class JobManager : MonoBehaviour
     {
         switch (kind)
         {
-            case CustomerKind.Sponge:
-                return UnityEngine.Random.Range(1, 3);
-            case CustomerKind.Brandon:
-                return UnityEngine.Random.Range(2, 4);
-            default:
-                return UnityEngine.Random.Range(1, 4);
+            case CustomerKind.Sponge: return UnityEngine.Random.Range(1, 3);
+            case CustomerKind.Brandon: return UnityEngine.Random.Range(2, 4);
+            default: return UnityEngine.Random.Range(1, 4);
         }
     }
 
@@ -299,23 +319,12 @@ public class JobManager : MonoBehaviour
     {
         switch (kind)
         {
-            case CustomerKind.Sponge:
-                return UnityEngine.Random.Range(1, 3);
-            case CustomerKind.Brandon:
-                return UnityEngine.Random.Range(2, 6);
+            case CustomerKind.Sponge: return UnityEngine.Random.Range(1, 3);
+            case CustomerKind.Brandon: return UnityEngine.Random.Range(2, 6);
             case CustomerKind.Charlie:
             case CustomerKind.Gabby:
-            default:
-                return UnityEngine.Random.Range(1, 5);
+            default: return UnityEngine.Random.Range(1, 5);
         }
-    }
-
-    public int EstimateGold(JobOrder job)
-    {
-        if (job == null) return 0;
-        int total = job.TotalQuantity;
-        float baseTotal = basePayPerItem * total;
-        return Mathf.RoundToInt(baseTotal);
     }
 
     public void AcceptJob(JobOrder job)
@@ -341,15 +350,11 @@ public class JobManager : MonoBehaviour
 
         availableJobs.Remove(job);
 
-        if (slot >= 0)
-        {
-            SpawnNewJobForSlot(slot);
-        }
+        if (slot >= 0) SpawnNewJobForSlot(slot);
 
         NotifyChanged();
     }
 
-    // called by the production machine when it finishes building one item
     public void ReportProductBuilt(ItemSO product, bool misfit)
     {
         if (product == null) return;
@@ -378,10 +383,7 @@ public class JobManager : MonoBehaviour
 
             if (matched)
             {
-                if (job.TotalProduced >= job.TotalQuantity)
-                {
-                    job.isReadyForDelivery = true;
-                }
+                if (job.TotalProduced >= job.TotalQuantity) job.isReadyForDelivery = true;
                 changed = true;
                 break;
             }
@@ -393,7 +395,6 @@ public class JobManager : MonoBehaviour
         }
     }
 
-    // called by the truck UI when the player has dragged items and pressed Deliver
     public void DeliverJob(JobOrder job)
     {
         if (job == null) return;
@@ -415,72 +416,18 @@ public class JobManager : MonoBehaviour
 
         job.isCompleted = true;
 
-        int totalQuantity = job.TotalQuantity;
-        float baseTotal = basePayPerItem * totalQuantity;
-
-        float stars = job.StarValue;
-        float starFactor = stars / 3f;
-
-        float pay = baseTotal * starFactor;
-
-        float xp = baseXpPerJob;
-        float xpMultiplier = Mathf.Max(0f, 1f - 0.1f * job.misfitCount);
-        xp *= xpMultiplier;
-
-        switch (job.customer)
+        if (job.id == "JOB_TUTORIAL")
         {
-            case CustomerKind.Charlie:
-                pay *= 1.2f;
-                break;
-            case CustomerKind.Gabby:
-                if (stars >= 3f)
-                {
-                    pay *= 1.4f;
-                }
-                break;
-            case CustomerKind.Sponge:
-                break;
-            case CustomerKind.Brandon:
-                if (totalQuantity >= 5 && stars >= 3f)
-                {
-                    pay *= 1.5f;
-                    xp += 25f;
-                }
-                break;
-        }
-
-        job.goldReward = Mathf.RoundToInt(pay);
-        job.xpReward = Mathf.RoundToInt(xp);
-
-        Inventory inv = FindFirstObjectByType<Inventory>();
-        if (inv != null)
-        {
-            if (job.goldReward > 0) inv.AddMoney(job.goldReward);
-            if (job.xpReward > 0) inv.AddXp(job.xpReward);
+            PlayerPrefs.SetInt(PREF_TUTORIAL_JOB_DELIVERED, 1);
+            PlayerPrefs.Save();
         }
 
         HandleJobResolved(job, true);
-
-        Debug.Log("Job " + job.id +
-                  " delivered. Customer=" + job.customer +
-                  " Pay=" + job.goldReward +
-                  " XP=" + job.xpReward +
-                  " Stars=" + job.StarValue);
     }
 
     void HandleJobResolved(JobOrder job, bool succeeded)
     {
         if (job == null) return;
-
-        if (!succeeded)
-        {
-            Inventory inv = FindFirstObjectByType<Inventory>();
-            if (inv != null)
-            {
-                inv.AddMoney(-50f);
-                inv.AddXp(-10);
-            }
-        }
 
         if (activeJobs.Contains(job))
             activeJobs.Remove(job);
@@ -500,7 +447,8 @@ public class JobManager : MonoBehaviour
         newJob.slotIndex = slotIndex;
         availableJobs.Add(newJob);
     }
-   public void NotifyChanged()
+
+    public void NotifyChanged()
     {
         if (worldSpawner)
         {
@@ -512,10 +460,10 @@ public class JobManager : MonoBehaviour
             jobBoardUI.Refresh();
         }
     }
+
     public void AddJob(JobOrder job)
     {
         availableJobs.Add(job);
-        NotifyChanged(); 
+        NotifyChanged();
     }
-
 }
