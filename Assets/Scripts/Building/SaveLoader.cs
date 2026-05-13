@@ -8,7 +8,7 @@ public class SaveLoader : MonoBehaviour
     [SerializeField] public BuildingSystem buildingSystem;
     [SerializeField] public ShopItemSO[] shopItems;
 
-    void Awake()
+    private void Awake()
     {
         if (storage == null)
             storage = FindFirstObjectByType<StorageManager>();
@@ -23,40 +23,38 @@ public class SaveLoader : MonoBehaviour
                 inventory = gm.GetComponent<Inventory>();
         }
 
+        if (inventory == null)
+            inventory = FindFirstObjectByType<Inventory>();
+
         LoadInventory();
         LoadStorage();
     }
 
-    void Start()
+    private void Start()
     {
         LoadPlacedObjects();
     }
 
-    void OnApplicationQuit()
+    private void OnApplicationQuit()
     {
         SaveInventory();
         SaveStorage();
     }
 
-    void SaveInventory()
+    private void SaveInventory()
     {
         if (inventory == null) return;
-        PlayerPrefs.SetFloat("Money", inventory.money);
-        PlayerPrefs.SetInt("Xp", inventory.xp);
-        PlayerPrefs.SetInt("Lumber", inventory.lumber);
-        PlayerPrefs.Save();
+        inventory.SaveToPrefs();
     }
 
-    void LoadInventory()
+    private void LoadInventory()
     {
         if (inventory == null) return;
-        inventory.money = PlayerPrefs.GetFloat("Money", 5000f);
-        inventory.AddXp(PlayerPrefs.GetInt("Xp", 0));
-        inventory.lumber = PlayerPrefs.GetInt("Lumber", 0);
+        inventory.LoadFromPrefs();
         inventory.RefreshUI();
     }
 
-    void SaveStorage()
+    private void SaveStorage()
     {
         if (storage == null) return;
 
@@ -65,10 +63,11 @@ public class SaveLoader : MonoBehaviour
             if (kv.Key == null) continue;
             PlayerPrefs.SetInt("Storage_" + kv.Key.id, kv.Value);
         }
+
         PlayerPrefs.Save();
     }
 
-    void LoadStorage()
+    private void LoadStorage()
     {
         if (storage == null) return;
 
@@ -80,7 +79,7 @@ public class SaveLoader : MonoBehaviour
         }
     }
 
-    void LoadPlacedObjects()
+    private void LoadPlacedObjects()
     {
         if (buildingSystem == null || buildingSystem.gridLayout == null)
         {
@@ -89,19 +88,14 @@ public class SaveLoader : MonoBehaviour
         }
 
         if (shopItems == null || shopItems.Length == 0)
-        {
-            Debug.LogError(" no item");
             return;
-        }
 
-        foreach (var item in shopItems)
+        foreach (ShopItemSO item in shopItems)
         {
             if (item == null) continue;
             if (item.prefabToPlace == null) continue;
             if (string.IsNullOrEmpty(item.id)) continue;
-
-            if (PlayerPrefs.GetInt("MachineOwned_" + item.id, 0) != 1)
-                continue;
+            if (PlayerPrefs.GetInt("MachineOwned_" + item.id, 0) != 1) continue;
 
             Vector3 pos = new Vector3(
                 PlayerPrefs.GetFloat("MachinePosX_" + item.id, 0f),
@@ -109,19 +103,11 @@ public class SaveLoader : MonoBehaviour
                 PlayerPrefs.GetFloat("MachinePosZ_" + item.id, 0f)
             );
 
-            Quaternion rot = Quaternion.Euler(
-                0f,
-                PlayerPrefs.GetFloat("MachineRotY_" + item.id, 0f),
-                0f
-            );
-
+            Quaternion rot = Quaternion.Euler(0f, PlayerPrefs.GetFloat("MachineRotY_" + item.id, 0f), 0f);
             GameObject obj = Instantiate(item.prefabToPlace, pos, rot);
+            Placeble p = obj.GetComponentInChildren<Placeble>();
 
-            var p = obj.GetComponentInChildren<Placeble>();
-            if (p == null)
-            {
-                continue;
-            }
+            if (p == null) continue;
 
             p.prefabId = item.id;
             p.Load();
@@ -129,7 +115,6 @@ public class SaveLoader : MonoBehaviour
 
             Vector3Int start = buildingSystem.gridLayout.WorldToCell(p.GetStartPosition());
             buildingSystem.TakeArea(start, p.Size);
-
         }
     }
 }

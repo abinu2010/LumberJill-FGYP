@@ -6585,6 +6585,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1780199837477029790, guid: 18370fc2d162ef74a9505b3127e35c73, type: 3}
+      propertyPath: deliveryPanel
+      value: 
+      objectReference: {fileID: 852766587}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -12489,6 +12493,12 @@ MonoBehaviour:
   shopPanel: {fileID: 9143664797217872784}
   stockMarket: {fileID: 7312901002185521089}
   closeComputerPanelWhenOpeningApps: 0
+  ComputerOpened:
+    m_PersistentCalls:
+      m_Calls: []
+  ComputerClosed:
+    m_PersistentCalls:
+      m_Calls: []
   ShopOpened:
     m_PersistentCalls:
       m_Calls: []

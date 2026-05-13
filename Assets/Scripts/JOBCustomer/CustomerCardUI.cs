@@ -17,11 +17,14 @@ public class CustomerCardUI : MonoBehaviour
     public Button closeButton;
 
     public UnityEvent OnShown;
+    public UnityEvent OnAccepted;
+    public UnityEvent OnDeclined;
+    public UnityEvent OnHidden;
 
-    JobManager jobManager;
-    JobOrder job;
+    private JobManager jobManager;
+    private JobOrder job;
 
-    void Awake()
+    private void Awake()
     {
         if (!rootPanel) rootPanel = gameObject;
         rootPanel.SetActive(false);
@@ -35,24 +38,18 @@ public class CustomerCardUI : MonoBehaviour
         if (jobManager == null || job == null)
         {
             Hide();
-            Debug.Log("job mananger or job was null in customer card UI");
             return;
         }
 
         if (!rootPanel) rootPanel = gameObject;
         rootPanel.SetActive(true);
-        
-        if (rootPanel.activeSelf) OnShown?.Invoke();
-            
+        OnShown?.Invoke();
+
         if (customerNameText)
-        {
             customerNameText.text = GetCustomerName(job.customer);
-        }
 
         if (itemsText)
-        {
             itemsText.text = BuildItemsText(job);
-        }
 
         if (timeText)
         {
@@ -62,19 +59,18 @@ public class CustomerCardUI : MonoBehaviour
             timeText.text = "Time limit: " + m.ToString("00") + ":" + s.ToString("00");
         }
 
-        if (rewardText && jobManager != null)
+        if (rewardText)
         {
             int gold = jobManager.EstimateGold(job);
             rewardText.text = "Estimated pay: " + gold.ToString() + " gold";
         }
 
         if (noteText)
-        {
             noteText.text = BuildCustomerNote(job.customer);
-        }
 
         if (acceptButton)
         {
+            acceptButton.onClick.RemoveAllListeners();
             acceptButton.onClick.AddListener(OnAcceptClicked);
         }
 
@@ -93,30 +89,30 @@ public class CustomerCardUI : MonoBehaviour
 
     public void Hide()
     {
-        Debug.Log("customerUI hide panel was called");
         if (!rootPanel) rootPanel = gameObject;
         rootPanel.SetActive(false);
+        OnHidden?.Invoke();
     }
 
-    void OnAcceptClicked()
+    private void OnAcceptClicked()
     {
         if (jobManager != null && job != null)
-        {
             jobManager.AcceptJob(job);
-        }
+
+        OnAccepted?.Invoke();
         Hide();
     }
 
-    void OnDeclineClicked()
+    private void OnDeclineClicked()
     {
         if (jobManager != null && job != null)
-        {
             jobManager.DeclineJob(job);
-        }
+
+        OnDeclined?.Invoke();
         Hide();
     }
 
-    string GetCustomerName(CustomerKind kind)
+    private string GetCustomerName(CustomerKind kind)
     {
         switch (kind)
         {
@@ -128,18 +124,16 @@ public class CustomerCardUI : MonoBehaviour
         }
     }
 
-    string BuildItemsText(JobOrder order)
+    private string BuildItemsText(JobOrder order)
     {
         if (order.lines == null || order.lines.Count == 0)
-        {
             return "No items";
-        }
 
         StringBuilder sb = new StringBuilder();
 
         for (int i = 0; i < order.lines.Count; i++)
         {
-            var line = order.lines[i];
+            JobLine line = order.lines[i];
             if (line == null) continue;
 
             string name = line.product ? line.product.displayName : "Item";
@@ -152,20 +146,15 @@ public class CustomerCardUI : MonoBehaviour
         return sb.ToString();
     }
 
-    string BuildCustomerNote(CustomerKind kind)
+    private string BuildCustomerNote(CustomerKind kind)
     {
         switch (kind)
         {
-            case CustomerKind.Charlie:
-                return "Short deadlines, higher pay.";
-            case CustomerKind.Gabby:
-                return "Wants perfect quality.";
-            case CustomerKind.Sponge:
-                return "Small, simple orders.";
-            case CustomerKind.Brandon:
-                return "Large combo orders.";
-            default:
-                return "";
+            case CustomerKind.Charlie: return "Short deadlines, higher pay.";
+            case CustomerKind.Gabby: return "Wants perfect quality.";
+            case CustomerKind.Sponge: return "Small, simple orders.";
+            case CustomerKind.Brandon: return "Large combo orders.";
+            default: return "";
         }
     }
 }

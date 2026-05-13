@@ -1,15 +1,20 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 [RequireComponent(typeof(Collider))]
 public class JobBoard : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     public JobBoardUI jobBoard;
 
-    void OnMouseDown()
+    private void OnMouseDown()
     {
         if (!jobBoard) return;
-        if (jobBoard.gameObject.activeSelf) jobBoard.Close();
-        else jobBoard.Open();
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
+        if (PlayerController.IsInputLocked) return;
+
+        if (jobBoard.gameObject.activeSelf)
+            jobBoard.Close();
+        else
+            jobBoard.Open();
     }
 }

@@ -1,7 +1,8 @@
-using UnityEngine;
-using UnityEngine.UI; 
 using TMPro;
+using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class GameShopPanelUI : MonoBehaviour
 {
@@ -18,190 +19,133 @@ public class GameShopPanelUI : MonoBehaviour
     public Inventory inventory;
     public GameObject computerPanel;
 
+    [Header("Controls")]
+    public Button closeButton;
+    public ScrollRect scrollRect;
+
     [Header("Feedback")]
     public TextMeshProUGUI feedbackLabel;
 
     [Header("Debug")]
-    [Tooltip("When enabled, logs UI and physics raycast results when the shop is open and the user clicks/taps.")]
     public bool debugRaycastOnClick = false;
 
-    const string PrefOwnedPrefix = "ShopOwned_";
+    public UnityEvent<ShopItemSO> Purchased = new UnityEvent<ShopItemSO>();
 
-    void Awake()
+    private const string PrefOwnedPrefix = "ShopOwned_";
+    private CanvasGroup canvasGroup;
+
+    public bool IsOpen
     {
-        if (storage == null)
-            storage = FindFirstObjectByType<StorageManager>();
-
-        if (inventory == null)
+        get
         {
-            GameObject gm = GameObject.FindWithTag("GameController");
-            if (gm != null)
-                inventory = gm.GetComponent<Inventory>();
+            GameObject root = GetRoot();
+            return root != null && root.activeInHierarchy;
         }
-
     }
 
-    void Start()
+    private void Awake()
+    {
+        AutoWire();
+        WireCloseButton();
+    }
+
+    private void Start()
     {
         BuildList();
         Close();
     }
 
-    void Update()
+    private void OnEnable()
+    {
+        AutoWire();
+        WireCloseButton();
+    }
+
+    private void Update()
     {
         if (!debugRaycastOnClick) return;
+        if (!IsOpen) return;
 
-        // If shop is visible, log raycast info for clicks/taps to help debug blocking UI
-        bool visible = (rootPanel != null ? rootPanel.activeInHierarchy : gameObject.activeInHierarchy);
-        if (!visible) return;
-
-        // Touch
         if (Input.touchCount > 0)
         {
-            var t = Input.GetTouch(0);
+            Touch t = Input.GetTouch(0);
             if (t.phase == TouchPhase.Began)
                 DebugRaycastAt(t.position);
         }
 
-        // Mouse
         if (Input.GetMouseButtonDown(0))
-        {
             DebugRaycastAt(Input.mousePosition);
-        }
-    }
-
-    private void DebugRaycastAt(Vector2 screenPos)
-    {
-        Debug.Log($"[GameShopPanelUI] DebugRaycastAt screenPos={screenPos}");
-
-        // UI raycast
-        if (EventSystem.current != null)
-        {
-            var ped = new PointerEventData(EventSystem.current) { position = screenPos };
-            var results = new System.Collections.Generic.List<RaycastResult>();
-            EventSystem.current.RaycastAll(ped, results);
-
-            if (results.Count == 0)
-            {
-                Debug.Log("[GameShopPanelUI] UI Raycast: no results");
-            }
-            else
-            {
-                Debug.Log($"[GameShopPanelUI] UI Raycast: {results.Count} results (top first):");
-                for (int i = 0; i < results.Count; i++)
-                {
-                    var r = results[i];
-                    string moduleName = r.module != null ? r.module.GetType().Name : "null";
-                    Debug.Log($"  [{i}] go={r.gameObject?.name ?? "null"} module={moduleName} depth={r.depth} index={r.index} worldPosition={r.worldPosition}");
-                }
-            }
-        }
-        else
-        {
-            Debug.Log("[GameShopPanelUI] No EventSystem present");
-        }
-
-        // Physics raycast from camera
-        Camera cam = Camera.main;
-        if (cam != null)
-        {
-            Ray ray = cam.ScreenPointToRay(screenPos);
-            if (Physics.Raycast(ray, out RaycastHit hit, 1000f))
-            {
-                Debug.Log($"[GameShopPanelUI] Physics Raycast hit: collider={hit.collider.name} go={hit.collider.gameObject.name} distance={hit.distance}");
-
-                // show hierarchy path
-                var path = hit.collider.gameObject.name;
-                var t = hit.collider.transform.parent;
-                while (t != null)
-                {
-                    path = t.name + "/" + path;
-                    t = t.parent;
-                }
-                Debug.Log($"[GameShopPanelUI] Hit path: {path}");
-            }
-            else
-            {
-                Debug.Log("[GameShopPanelUI] Physics Raycast: no hit");
-            }
-        }
-        else
-        {
-            Debug.Log("[GameShopPanelUI] No Camera.main available for physics raycast");
-        }
     }
 
     public void Open()
     {
-        if (rootPanel != null)
-            rootPanel.SetActive(true);
+        AutoWire();
+        WireCloseButton();
+
+        GameObject root = GetRoot();
+        if (!root) return;
+
+        if (UIManager.Instance != null)
+            UIManager.Instance.Open(root);
         else
-            gameObject.SetActive(true);
+        {
+            root.SetActive(true);
+            PlayerController.IsInputLocked = true;
+        }
+
+        if (canvasGroup != null)
+        {
+            canvasGroup.alpha = 1f;
+            canvasGroup.interactable = true;
+            canvasGroup.blocksRaycasts = true;
+        }
+
+        if (scrollRect != null)
+        {
+            scrollRect.enabled = true;
+            scrollRect.StopMovement();
+        }
 
         if (feedbackLabel != null)
             feedbackLabel.text = string.Empty;
-
-        PlayerController.IsInputLocked = true;
     }
 
     public void Close()
     {
-        if (rootPanel != null)
-            rootPanel.SetActive(false);
+        GameObject root = GetRoot();
+        if (!root) return;
+
+        if (UIManager.Instance != null)
+            UIManager.Instance.Close(root);
         else
-            gameObject.SetActive(false);
-
-        PlayerController.IsInputLocked = false;
-    }
-
-    void BuildList()
-    {
-        if (contentRoot == null || rowPrefab == null)
         {
-            return;
+            root.SetActive(false);
+            PlayerController.IsInputLocked = false;
         }
-
-        foreach (Transform child in contentRoot)
-            Destroy(child.gameObject);
-
-        if (items == null || items.Length == 0)
-        {
-            Debug.LogWarning(" No items there");
-            return;
-        }
-
-        foreach (var item in items)
-        {
-            if (item == null) continue;
-
-            bool owned = IsOwned(item);
-            var row = Instantiate(rowPrefab, contentRoot);
-            row.Bind(this, item, owned);
-        }
-
     }
 
     public void HandleBuy(ShopItemSO item)
     {
         if (item == null) return;
+        AutoWire();
+        WireCloseButton();
 
         if (inventory == null)
         {
+            SetFeedback("Inventory missing.");
             return;
         }
 
-        // stop extra buys for single-purchase items
         if (item.singlePurchase && IsOwned(item))
         {
-            if (feedbackLabel != null)
-                feedbackLabel.text = "Owned.";
+            SetFeedback("Owned.");
+            BuildList();
             return;
         }
 
         if (item.price > 0 && !inventory.TrySpend(item.price))
         {
-            if (feedbackLabel != null)
-                feedbackLabel.text = "Not enough money.";
+            SetFeedback("Not enough money.");
             return;
         }
 
@@ -209,20 +153,15 @@ public class GameShopPanelUI : MonoBehaviour
 
         try
         {
-            // Always close shop before doing any buy
-            Close();
-
             switch (item.type)
             {
                 case ShopItemType.BuyItemToStorage:
                     success = BuyItemToStorage(item);
                     break;
-
                 case ShopItemType.BuyMachineToPlace:
                 case ShopItemType.BuyFieldToPlace:
                     success = BuyPlaceable(item);
                     break;
-
                 case ShopItemType.BuyRecipe:
                     success = BuyRecipe(item);
                     break;
@@ -230,85 +169,209 @@ public class GameShopPanelUI : MonoBehaviour
         }
         catch (System.Exception ex)
         {
+            Debug.LogError("Shop buy failed: " + ex.Message);
             success = false;
         }
 
         if (!success)
         {
-            if (feedbackLabel != null)
-                feedbackLabel.text = "Buy failed.";
-
             if (item.price > 0)
-                inventory.AddMoney(item.price); // refund
+                inventory.AddMoney(item.price);
+
+            SetFeedback("Buy failed.");
             return;
         }
 
         if (item.singlePurchase)
             SetOwned(item);
 
-        if (feedbackLabel != null)
-            feedbackLabel.text = "Bought " + item.displayName;
-
+        SetFeedback("Bought " + GetDisplayName(item));
+        Purchased.Invoke(item);
         BuildList();
-    }
-    bool BuyItemToStorage(ShopItemSO item)
-    {
-        if (storage == null)
+
+        if (item.type == ShopItemType.BuyMachineToPlace || item.type == ShopItemType.BuyFieldToPlace)
         {
-            storage = FindFirstObjectByType<StorageManager>();
-            if (storage == null)
+            Close();
+
+            if (computerPanel != null)
             {
-                Debug.LogError(" No StorageManager found.");
-                return false;
+                if (UIManager.Instance != null)
+                    UIManager.Instance.Close(computerPanel);
+                else
+                    computerPanel.SetActive(false);
             }
         }
-        if (item.item == null || item.itemCount <= 0)
-        {
-            return false;
-        }
+    }
+
+    public bool IsOwned(ShopItemSO item)
+    {
+        if (item == null || string.IsNullOrEmpty(item.id)) return false;
+        if (PlayerPrefs.GetInt(PrefOwnedPrefix + item.id, 0) == 1) return true;
+        if (PlayerPrefs.GetInt("RecipeUnlocked_" + item.id, 0) == 1) return true;
+        if (PlayerPrefs.GetInt("MachineOwned_" + item.id, 0) == 1) return true;
+        return false;
+    }
+
+    private bool BuyItemToStorage(ShopItemSO item)
+    {
+        if (storage == null)
+            storage = FindFirstObjectByType<StorageManager>();
+
+        if (storage == null) return false;
+        if (item.item == null || item.itemCount <= 0) return false;
 
         storage.Put(item.item, item.itemCount);
         return true;
     }
 
-    bool BuyPlaceable(ShopItemSO item)
+    private bool BuyPlaceable(ShopItemSO item)
     {
         if (item.prefabToPlace == null) return false;
         if (BuildingSystem.instance == null) return false;
 
-        Close(); // closes shop panel
-        if (computerPanel != null)
-            computerPanel.SetActive(false);
-
-        BuildingSystem.instance.StartPlacement(item); //  ShopItemSO
+        BuildingSystem.instance.StartPlacement(item);
         return true;
     }
 
-
-
-    bool BuyRecipe(ShopItemSO item)
+    private bool BuyRecipe(ShopItemSO item)
     {
         if (item.recipeToUnlock == null) return false;
         if (string.IsNullOrEmpty(item.recipeToUnlock.id)) return false;
 
-        PlayerPrefs.SetInt("RecipeUnlocked_" + item.recipeToUnlock.id, 1);
-        PlayerPrefs.Save();
+        if (RecipeUnlockManager.Instance != null)
+            RecipeUnlockManager.Instance.UnlockRecipe(item.recipeToUnlock);
+        else
+        {
+            PlayerPrefs.SetInt("RecipeUnlocked_" + item.recipeToUnlock.id, 1);
+            PlayerPrefs.Save();
+        }
+
         return true;
     }
 
-
-    public bool IsOwned(ShopItemSO item)
+    private void BuildList()
     {
-        if (item == null || string.IsNullOrEmpty(item.id)) return false;
-        return PlayerPrefs.GetInt(PrefOwnedPrefix + item.id, 0) == 1;
+        AutoWire();
+        if (contentRoot == null || rowPrefab == null) return;
+
+        for (int i = contentRoot.childCount - 1; i >= 0; i--)
+            Destroy(contentRoot.GetChild(i).gameObject);
+
+        if (items == null || items.Length == 0) return;
+
+        for (int i = 0; i < items.Length; i++)
+        {
+            ShopItemSO item = items[i];
+            if (item == null) continue;
+
+            ShopRowUI row = Instantiate(rowPrefab, contentRoot);
+            row.Bind(this, item, IsOwned(item));
+        }
+
+        if (scrollRect != null)
+            scrollRect.verticalNormalizedPosition = 1f;
     }
 
-    void SetOwned(ShopItemSO item)
+    private void SetOwned(ShopItemSO item)
     {
         if (item == null || string.IsNullOrEmpty(item.id)) return;
-
         PlayerPrefs.SetInt(PrefOwnedPrefix + item.id, 1);
         PlayerPrefs.Save();
+    }
 
+    private void SetFeedback(string message)
+    {
+        if (feedbackLabel != null)
+            feedbackLabel.text = message;
+    }
+
+    private string GetDisplayName(ShopItemSO item)
+    {
+        if (item == null) return "Item";
+        return string.IsNullOrEmpty(item.displayName) ? item.name : item.displayName;
+    }
+
+    private GameObject GetRoot()
+    {
+        return rootPanel != null ? rootPanel : gameObject;
+    }
+
+    private void AutoWire()
+    {
+        if (storage == null)
+            storage = FindFirstObjectByType<StorageManager>();
+
+        if (inventory == null)
+            inventory = FindFirstObjectByType<Inventory>();
+
+        if (scrollRect == null)
+            scrollRect = GetComponentInChildren<ScrollRect>(true);
+
+        if (contentRoot == null && scrollRect != null && scrollRect.content != null)
+            contentRoot = scrollRect.content;
+
+        if (closeButton == null)
+            closeButton = FindCloseButton();
+
+        GameObject root = GetRoot();
+        if (root != null)
+        {
+            canvasGroup = root.GetComponent<CanvasGroup>();
+            if (canvasGroup == null) canvasGroup = root.AddComponent<CanvasGroup>();
+        }
+    }
+
+    private void WireCloseButton()
+    {
+        if (closeButton == null) return;
+        closeButton.onClick.RemoveListener(Close);
+        closeButton.onClick.AddListener(Close);
+        closeButton.interactable = true;
+    }
+
+    private Button FindCloseButton()
+    {
+        Button[] buttons = GetComponentsInChildren<Button>(true);
+
+        for (int i = 0; i < buttons.Length; i++)
+        {
+            if (buttons[i] == null) continue;
+            string n = buttons[i].name.ToLowerInvariant();
+            if (n == "btn_close" || n == "button_close" || n == "close_btn" || n == "buttonclose" || n == "closebutton" || n == "close")
+                return buttons[i];
+        }
+
+        for (int i = 0; i < buttons.Length; i++)
+        {
+            if (buttons[i] == null) continue;
+            if (buttons[i].name.ToLowerInvariant().Contains("close"))
+                return buttons[i];
+        }
+
+        return null;
+    }
+
+    private void DebugRaycastAt(Vector2 screenPos)
+    {
+        if (EventSystem.current != null)
+        {
+            PointerEventData ped = new PointerEventData(EventSystem.current);
+            ped.position = screenPos;
+            System.Collections.Generic.List<RaycastResult> results = new System.Collections.Generic.List<RaycastResult>();
+            EventSystem.current.RaycastAll(ped, results);
+
+            for (int i = 0; i < results.Count; i++)
+            {
+                RaycastResult r = results[i];
+                Debug.Log("UI hit " + i.ToString() + " " + r.gameObject.name);
+            }
+        }
+
+        Camera cam = Camera.main;
+        if (cam == null) return;
+
+        Ray ray = cam.ScreenPointToRay(screenPos);
+        if (Physics.Raycast(ray, out RaycastHit hit, 1000f))
+            Debug.Log("World hit " + hit.collider.gameObject.name);
     }
 }

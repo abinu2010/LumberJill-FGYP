@@ -9,19 +9,33 @@ public class Inventory : MonoBehaviour
     public int gold { get; set; }
     public int copper { get; set; }
 
-    [SerializeField] TMP_Text moneyUI;
-    [SerializeField] TMP_Text lumberUI;
-    [SerializeField] TMP_Text xpUI;
+    [SerializeField] private TMP_Text moneyUI;
+    [SerializeField] private TMP_Text lumberUI;
+    [SerializeField] private TMP_Text xpUI;
 
-    void Awake()
+    private void Awake()
+    {
+        LoadFromPrefs();
+        RefreshUI();
+    }
+
+    public void LoadFromPrefs()
     {
         money = PlayerPrefs.GetFloat("Money", 5000f);
         xp = PlayerPrefs.GetInt("Xp", 50);
         lumber = PlayerPrefs.GetInt("Lumber", 20);
         gold = PlayerPrefs.GetInt("Gold", 1000);
         copper = PlayerPrefs.GetInt("Copper", 0);
+    }
 
-        RefreshUI();
+    public void SaveToPrefs()
+    {
+        PlayerPrefs.SetFloat("Money", money);
+        PlayerPrefs.SetInt("Xp", xp);
+        PlayerPrefs.SetInt("Lumber", lumber);
+        PlayerPrefs.SetInt("Gold", gold);
+        PlayerPrefs.SetInt("Copper", copper);
+        PlayerPrefs.Save();
     }
 
     public void RefreshUI()
@@ -34,9 +48,8 @@ public class Inventory : MonoBehaviour
     public void AddMoney(float amount)
     {
         if (Mathf.Approximately(amount, 0f)) return;
-        money += amount;
-        PlayerPrefs.SetFloat("Money", money);
-        PlayerPrefs.Save();
+        money = Mathf.Max(0f, money + amount);
+        SaveToPrefs();
         RefreshUI();
     }
 
@@ -45,8 +58,7 @@ public class Inventory : MonoBehaviour
         if (amount <= 0f) return true;
         if (money < amount) return false;
         money -= amount;
-        PlayerPrefs.SetFloat("Money", money);
-        PlayerPrefs.Save();
+        SaveToPrefs();
         RefreshUI();
         return true;
     }
@@ -54,31 +66,41 @@ public class Inventory : MonoBehaviour
     public void AddXp(int amount)
     {
         if (amount == 0) return;
-        xp = Mathf.Max(0, xp + amount); // no going below 0
-        PlayerPrefs.SetInt("Xp", xp);
-        PlayerPrefs.Save();
+        xp = Mathf.Max(0, xp + amount);
+        SaveToPrefs();
+        RefreshUI();
+    }
+
+    public void SetXp(int value)
+    {
+        xp = Mathf.Max(0, value);
+        SaveToPrefs();
         RefreshUI();
     }
 
     public void ChangeLumber(int delta)
     {
         lumber = Mathf.Max(0, lumber + delta);
-        PlayerPrefs.SetInt("Lumber", lumber);
-        PlayerPrefs.Save();
+        SaveToPrefs();
+        RefreshUI();
+    }
+
+    public void SetLumber(int value)
+    {
+        lumber = Mathf.Max(0, value);
+        SaveToPrefs();
         RefreshUI();
     }
 
     public void ChangeGold(int delta)
     {
         gold = Mathf.Max(0, gold + delta);
-        PlayerPrefs.SetInt("Gold", gold);
-        PlayerPrefs.Save();
+        SaveToPrefs();
     }
 
     public void ChangeCopper(int delta)
     {
         copper = Mathf.Max(0, copper + delta);
-        PlayerPrefs.SetInt("Copper", copper);
-        PlayerPrefs.Save();
+        SaveToPrefs();
     }
 }

@@ -9,7 +9,7 @@ public class CloseComputerUI : MonoBehaviour
     private void Awake()
     {
         if (computerUI == null)
-            computerUI = transform.root.gameObject;
+            computerUI = FindComputerPanel();
 
         button = GetComponent<Button>();
         if (button != null)
@@ -19,42 +19,53 @@ public class CloseComputerUI : MonoBehaviour
         }
     }
 
+    private GameObject FindComputerPanel()
+    {
+        Transform t = transform;
+        while (t != null)
+        {
+            if (t.name == "Computer_UI" || t.name == "Computer Panel" || t.name == "ComputerPanel")
+                return t.gameObject;
+
+            t = t.parent;
+        }
+
+        return transform.parent != null ? transform.parent.gameObject : gameObject;
+    }
+
     private void CloseUI()
     {
-        Debug.Log($"[CloseComputerUI] CloseUI called for gameObject={gameObject.name} root={computerUI?.name}");
-
-        // Try to find a WorkshopComputer that owns this computer panel
-        var all = FindObjectsOfType<WorkshopComputer>();
-        foreach (var comp in all)
+        WorkshopComputer[] all = FindObjectsByType<WorkshopComputer>(FindObjectsSortMode.None);
+        for (int i = 0; i < all.Length; i++)
         {
-            if (comp == null) continue;
-            if (comp.computerPanel == computerUI)
+            WorkshopComputer comp = all[i];
+            if (comp != null && comp.computerPanel == computerUI)
             {
-                Debug.Log("[CloseComputerUI] Found WorkshopComputer owner, calling OnCloseComputerPanel()");
                 comp.OnCloseComputerPanel();
                 return;
             }
         }
 
-        // If not found, try to close via UIManager
+        WorldShopBuilding[] worldComputers = FindObjectsByType<WorldShopBuilding>(FindObjectsSortMode.None);
+        for (int i = 0; i < worldComputers.Length; i++)
+        {
+            WorldShopBuilding comp = worldComputers[i];
+            if (comp != null)
+            {
+                comp.CloseComputer();
+                return;
+            }
+        }
+
         if (computerUI != null)
         {
             if (UIManager.Instance != null)
-            {
-                Debug.Log("[CloseComputerUI] No owner found; using UIManager to close panel");
                 UIManager.Instance.Close(computerUI);
-            }
             else
             {
-                Debug.Log("[CloseComputerUI] No UIManager; deactivating panel and clearing input lock");
                 computerUI.SetActive(false);
                 PlayerController.IsInputLocked = false;
             }
-        }
-        else
-        {
-            Debug.LogWarning("[CloseComputerUI] No computerUI reference assigned and root not available.");
-            PlayerController.IsInputLocked = false;
         }
     }
 }

@@ -6,15 +6,18 @@ public class DeliveryTruck : MonoBehaviour
 {
     public DeliveryPanelUI deliveryPanel;
 
-    void OnMouseDown()
+    private void OnMouseDown()
     {
-        if (PlayerController.IsInputLocked) return;
+        if (!deliveryPanel) return;
         if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
-     
-        if (deliveryPanel.gameObject.activeSelf)
+
+        bool panelOpen = deliveryPanel.gameObject.activeInHierarchy;
+
+        if (!panelOpen && PlayerController.IsInputLocked) return;
+
+        if (panelOpen)
             deliveryPanel.Close();
         else
             deliveryPanel.Open();
     }
-
 }

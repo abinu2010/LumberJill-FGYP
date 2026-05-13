@@ -26,9 +26,7 @@ public class JobOrder
     public List<JobLine> lines = new List<JobLine>();
     public float deadlineSeconds;
     public int slotIndex = -1;
-
     [NonSerialized] public float acceptedAt;
-
     public bool isAccepted;
     public bool isCompleted;
     public bool isFailed;
@@ -44,11 +42,9 @@ public class JobOrder
             int total = 0;
             for (int i = 0; i < lines.Count; i++)
             {
-                var line = lines[i];
+                JobLine line = lines[i];
                 if (line != null)
-                {
                     total += Mathf.Max(0, line.quantity);
-                }
             }
             return total;
         }
@@ -61,11 +57,9 @@ public class JobOrder
             int total = 0;
             for (int i = 0; i < lines.Count; i++)
             {
-                var line = lines[i];
+                JobLine line = lines[i];
                 if (line != null)
-                {
                     total += Mathf.Max(0, line.producedCount);
-                }
             }
             return total;
         }
@@ -93,6 +87,8 @@ public class JobOrder
 
 public class JobManager : MonoBehaviour
 {
+    public const string TutorialJobId = "JOB_TUTORIAL";
+
     [Header("Products")]
     public List<ItemSO> productItems = new List<ItemSO>();
 
@@ -123,100 +119,154 @@ public class JobManager : MonoBehaviour
     [SerializeField] private ItemSO chairItemSO;
     [SerializeField] private bool isTutorialMode = false;
 
-    readonly List<JobOrder> availableJobs = new List<JobOrder>();
-    readonly List<JobOrder> activeJobs = new List<JobOrder>();
+    private readonly List<JobOrder> availableJobs = new List<JobOrder>();
+    private readonly List<JobOrder> activeJobs = new List<JobOrder>();
+    private bool tutorialJobCompleted;
 
     public IReadOnlyList<JobOrder> AvailableJobs => availableJobs;
     public IReadOnlyList<JobOrder> ActiveJobs => activeJobs;
+    public bool IsTutorialMode => isTutorialMode;
+    public bool TutorialJobCompleted => tutorialJobCompleted;
 
-    void Start()
+    private void Start()
     {
-        GenerateInitialJobs();
-        NotifyChanged();
+        if (!isTutorialMode)
+            GenerateInitialJobs();
+        else
+            NotifyChanged();
     }
 
-    void Update()
+    private void Update()
     {
         bool changed = false;
 
-        for (int i = 0; i < activeJobs.Count; i++)
+        for (int i = activeJobs.Count - 1; i >= 0; i--)
         {
-            var job = activeJobs[i];
-            if (job.isAccepted && !job.isCompleted && !job.isFailed)
+            JobOrder job = activeJobs[i];
+            if (job == null) continue;
+
+            if (job.isAccepted && !job.isCompleted && !job.isFailed && job.RemainingSeconds <= 0f)
             {
-                if (job.RemainingSeconds <= 0f)
-                {
-                    job.isFailed = true;
-                    changed = true;
-                    HandleJobResolved(job, false);
-                }
+                job.isFailed = true;
+                changed = true;
+                HandleJobResolved(job, false);
             }
         }
 
         if (changed && jobBoardUI && jobBoardUI.gameObject.activeSelf)
-        {
             jobBoardUI.Refresh();
+    }
+
+    public void BeginTutorialMode()
+    {
+        isTutorialMode = true;
+        tutorialJobCompleted = false;
+        availableJobs.Clear();
+        activeJobs.Clear();
+        customerSlots = 0;
+        NotifyChanged();
+    }
+
+    public void StartTutorialJob(ItemSO tutorialProduct)
+    {
+        isTutorialMode = true;
+        tutorialJobCompleted = false;
+        availableJobs.Clear();
+        activeJobs.Clear();
+        customerSlots = 1;
+
+        ItemSO product = tutorialProduct != null ? tutorialProduct : chairItemSO;
+        if (product == null && productItems != null && productItems.Count > 0)
+            product = productItems[0];
+
+        JobOrder job = new JobOrder();
+        job.id = TutorialJobId;
+        job.customer = CustomerKind.Charlie;
+        job.deadlineSeconds = Mathf.Max(60f, maxJobSeconds > 0f ? maxJobSeconds : 360f);
+        job.slotIndex = 0;
+        job.goldReward = 50;
+        job.xpReward = 0;
+
+        if (product != null)
+        {
+            JobLine line = new JobLine();
+            line.product = product;
+            line.quantity = 1;
+            job.lines.Add(line);
         }
+
+        availableJobs.Add(job);
+        NotifyChanged();
+    }
+
+    public void EndTutorialAndStartRealGame()
+    {
+        isTutorialMode = false;
+        availableJobs.Clear();
+        activeJobs.Clear();
+        customerSlots = Mathf.Max(3, customerSlots);
+        GenerateInitialJobs();
+        NotifyChanged();
     }
 
     public void GenerateInitialJobs()
     {
         availableJobs.Clear();
-        for (int slot = 0; slot < customerSlots; slot++)
+
+        if (isTutorialMode)
         {
-            var kind = GetRandomCustomerKind();
-            var job = CreateJob(kind);
+            NotifyChanged();
+            return;
+        }
+
+        int slots = Mathf.Max(0, customerSlots);
+        for (int slot = 0; slot < slots; slot++)
+        {
+            CustomerKind kind = GetRandomCustomerKind();
+            JobOrder job = CreateJob(kind);
             job.slotIndex = slot;
             availableJobs.Add(job);
         }
+
+        NotifyChanged();
     }
 
-    CustomerKind GetRandomCustomerKind()
+    private CustomerKind GetRandomCustomerKind()
     {
         Array values = Enum.GetValues(typeof(CustomerKind));
         int index = UnityEngine.Random.Range(0, values.Length);
         return (CustomerKind)values.GetValue(index);
     }
 
-    JobOrder CreateJob(CustomerKind kind)
+    private JobOrder CreateJob(CustomerKind kind)
     {
-        var job = new JobOrder();
+        JobOrder job = new JobOrder();
         job.id = "JOB_" + Guid.NewGuid().ToString("N");
         job.customer = kind;
 
-        int lineCount = GetLineCountFor(kind);
-        lineCount = Mathf.Clamp(lineCount, minLinesPerJob, maxLinesPerJob);
+        int safeMinLines = Mathf.Max(1, minLinesPerJob);
+        int safeMaxLines = Mathf.Max(safeMinLines, maxLinesPerJob);
+        int lineCount = Mathf.Clamp(GetLineCountFor(kind), safeMinLines, safeMaxLines);
 
-        var used = new HashSet<ItemSO>();
+        HashSet<ItemSO> used = new HashSet<ItemSO>();
 
         for (int i = 0; i < lineCount; i++)
         {
-            var line = new JobLine();
-
-            if (isTutorialMode)
-            {
-                line.product = chairItemSO;
-            }
-            else
-            {
-                line.product = GetRandomProduct(used);
-            }
+            JobLine line = new JobLine();
+            line.product = GetRandomProduct(used);
 
             if (line.product != null)
-            {
                 used.Add(line.product);
-            }
 
-            int qty = GetQuantityFor(kind);
-            qty = Mathf.Clamp(qty, minQuantityPerLine, maxQuantityPerLine);
-            line.quantity = Mathf.Max(1, qty);
-
+            int safeMinQuantity = Mathf.Max(1, minQuantityPerLine);
+            int safeMaxQuantity = Mathf.Max(safeMinQuantity, maxQuantityPerLine);
+            line.quantity = Mathf.Clamp(GetQuantityFor(kind), safeMinQuantity, safeMaxQuantity);
             job.lines.Add(line);
         }
 
-        if (job.TotalQuantity <= 0 && productItems.Count > 0)
+        if (job.TotalQuantity <= 0 && productItems != null && productItems.Count > 0)
         {
-            var fallback = new JobLine();
+            JobLine fallback = new JobLine();
             fallback.product = productItems[0];
             fallback.quantity = 1;
             job.lines.Add(fallback);
@@ -226,55 +276,42 @@ public class JobManager : MonoBehaviour
         return job;
     }
 
-    void SetupJobTime(JobOrder job)
+    private void SetupJobTime(JobOrder job)
     {
-        int total = job.TotalQuantity;
-        if (total <= 0) total = 1;
-
+        int total = Mathf.Max(1, job.TotalQuantity);
         int complexity = Mathf.Clamp(total, minComplexity, maxComplexity);
 
         float t01 = 0f;
         if (maxComplexity > minComplexity)
-        {
-            t01 = (complexity - minComplexity) /
-                  (float)(maxComplexity - minComplexity);
-        }
+            t01 = (complexity - minComplexity) / (float)(maxComplexity - minComplexity);
 
         float seconds = Mathf.Lerp(minJobSeconds, maxJobSeconds, t01);
-        float multiplier = GetTimeMultiplierFor(job.customer);
-
-        seconds *= multiplier;
-        seconds = Mathf.Clamp(seconds, minJobSeconds, maxJobSeconds);
-        job.deadlineSeconds = seconds;
+        seconds *= GetTimeMultiplierFor(job.customer);
+        job.deadlineSeconds = Mathf.Clamp(seconds, minJobSeconds, maxJobSeconds);
     }
 
-    float GetTimeMultiplierFor(CustomerKind kind)
+    private float GetTimeMultiplierFor(CustomerKind kind)
     {
         switch (kind)
         {
-            case CustomerKind.Charlie:
-                return 0.7f;
-            case CustomerKind.Sponge:
-                return 0.9f;
-            case CustomerKind.Brandon:
-                return 1.2f;
-            case CustomerKind.Gabby:
-            default:
-                return 1f;
+            case CustomerKind.Charlie: return 0.7f;
+            case CustomerKind.Sponge: return 0.9f;
+            case CustomerKind.Brandon: return 1.2f;
+            default: return 1f;
         }
     }
 
-    ItemSO GetRandomProduct(HashSet<ItemSO> used)
+    private ItemSO GetRandomProduct(HashSet<ItemSO> used)
     {
         if (productItems == null || productItems.Count == 0) return null;
 
         if (used != null && used.Count < productItems.Count)
         {
-            for (int i = 0; i < 8; i++)
+            for (int i = 0; i < 12; i++)
             {
                 int index = UnityEngine.Random.Range(0, productItems.Count);
-                var candidate = productItems[index];
-                if (!used.Contains(candidate)) return candidate;
+                ItemSO candidate = productItems[index];
+                if (candidate != null && !used.Contains(candidate)) return candidate;
             }
         }
 
@@ -282,40 +319,31 @@ public class JobManager : MonoBehaviour
         return productItems[fallbackIndex];
     }
 
-    int GetLineCountFor(CustomerKind kind)
+    private int GetLineCountFor(CustomerKind kind)
     {
         switch (kind)
         {
-            case CustomerKind.Sponge:
-                return UnityEngine.Random.Range(1, 3);
-            case CustomerKind.Brandon:
-                return UnityEngine.Random.Range(2, 4);
-            default:
-                return UnityEngine.Random.Range(1, 4);
+            case CustomerKind.Sponge: return UnityEngine.Random.Range(1, 3);
+            case CustomerKind.Brandon: return UnityEngine.Random.Range(2, 4);
+            default: return UnityEngine.Random.Range(1, 4);
         }
     }
 
-    int GetQuantityFor(CustomerKind kind)
+    private int GetQuantityFor(CustomerKind kind)
     {
         switch (kind)
         {
-            case CustomerKind.Sponge:
-                return UnityEngine.Random.Range(1, 3);
-            case CustomerKind.Brandon:
-                return UnityEngine.Random.Range(2, 6);
-            case CustomerKind.Charlie:
-            case CustomerKind.Gabby:
-            default:
-                return UnityEngine.Random.Range(1, 5);
+            case CustomerKind.Sponge: return UnityEngine.Random.Range(1, 3);
+            case CustomerKind.Brandon: return UnityEngine.Random.Range(2, 6);
+            default: return UnityEngine.Random.Range(1, 5);
         }
     }
 
     public int EstimateGold(JobOrder job)
     {
         if (job == null) return 0;
-        int total = job.TotalQuantity;
-        float baseTotal = basePayPerItem * total;
-        return Mathf.RoundToInt(baseTotal);
+        int total = Mathf.Max(1, job.TotalQuantity);
+        return Mathf.RoundToInt(basePayPerItem * total);
     }
 
     public void AcceptJob(JobOrder job)
@@ -328,7 +356,6 @@ public class JobManager : MonoBehaviour
         job.acceptedAt = Time.time;
         availableJobs.Remove(job);
         activeJobs.Add(job);
-
         NotifyChanged();
     }
 
@@ -338,18 +365,20 @@ public class JobManager : MonoBehaviour
         if (!availableJobs.Contains(job)) return;
 
         int slot = job.slotIndex;
-
         availableJobs.Remove(job);
 
-        if (slot >= 0)
+        if (isTutorialMode)
         {
-            SpawnNewJobForSlot(slot);
+            StartTutorialJob(GetFirstProductFrom(job));
+            return;
         }
+
+        if (slot >= 0)
+            SpawnNewJobForSlot(slot);
 
         NotifyChanged();
     }
 
-    // called by the production machine when it finishes building one item
     public void ReportProductBuilt(ItemSO product, bool misfit)
     {
         if (product == null) return;
@@ -358,14 +387,15 @@ public class JobManager : MonoBehaviour
 
         for (int i = 0; i < activeJobs.Count; i++)
         {
-            var job = activeJobs[i];
+            JobOrder job = activeJobs[i];
+            if (job == null) continue;
             if (!job.isAccepted || job.isCompleted || job.isFailed) continue;
 
             bool matched = false;
 
             for (int j = 0; j < job.lines.Count; j++)
             {
-                var line = job.lines[j];
+                JobLine line = job.lines[j];
                 if (line == null) continue;
                 if (line.product != product) continue;
                 if (line.producedCount >= line.quantity) continue;
@@ -379,21 +409,17 @@ public class JobManager : MonoBehaviour
             if (matched)
             {
                 if (job.TotalProduced >= job.TotalQuantity)
-                {
                     job.isReadyForDelivery = true;
-                }
+
                 changed = true;
                 break;
             }
         }
 
         if (changed && jobBoardUI && jobBoardUI.gameObject.activeSelf)
-        {
             jobBoardUI.Refresh();
-        }
     }
 
-    // called by the truck UI when the player has dragged items and pressed Deliver
     public void DeliverJob(JobOrder job)
     {
         if (job == null) return;
@@ -408,21 +434,18 @@ public class JobManager : MonoBehaviour
         CompleteJob(job);
     }
 
-    void CompleteJob(JobOrder job)
+    private void CompleteJob(JobOrder job)
     {
         if (job == null) return;
         if (job.isCompleted) return;
 
         job.isCompleted = true;
 
-        int totalQuantity = job.TotalQuantity;
+        int totalQuantity = Mathf.Max(1, job.TotalQuantity);
         float baseTotal = basePayPerItem * totalQuantity;
-
         float stars = job.StarValue;
         float starFactor = stars / 3f;
-
         float pay = baseTotal * starFactor;
-
         float xp = baseXpPerJob;
         float xpMultiplier = Mathf.Max(0f, 1f - 0.1f * job.misfitCount);
         xp *= xpMultiplier;
@@ -433,12 +456,7 @@ public class JobManager : MonoBehaviour
                 pay *= 1.2f;
                 break;
             case CustomerKind.Gabby:
-                if (stars >= 3f)
-                {
-                    pay *= 1.4f;
-                }
-                break;
-            case CustomerKind.Sponge:
+                if (stars >= 3f) pay *= 1.4f;
                 break;
             case CustomerKind.Brandon:
                 if (totalQuantity >= 5 && stars >= 3f)
@@ -447,6 +465,12 @@ public class JobManager : MonoBehaviour
                     xp += 25f;
                 }
                 break;
+        }
+
+        if (job.id == TutorialJobId)
+        {
+            pay = Mathf.Max(pay, 50f);
+            xp = Mathf.Max(0f, xp);
         }
 
         job.goldReward = Mathf.RoundToInt(pay);
@@ -460,15 +484,9 @@ public class JobManager : MonoBehaviour
         }
 
         HandleJobResolved(job, true);
-
-        Debug.Log("Job " + job.id +
-                  " delivered. Customer=" + job.customer +
-                  " Pay=" + job.goldReward +
-                  " XP=" + job.xpReward +
-                  " Stars=" + job.StarValue);
     }
 
-    void HandleJobResolved(JobOrder job, bool succeeded)
+    private void HandleJobResolved(JobOrder job, bool succeeded)
     {
         if (job == null) return;
 
@@ -485,37 +503,79 @@ public class JobManager : MonoBehaviour
         if (activeJobs.Contains(job))
             activeJobs.Remove(job);
 
-        if (job.slotIndex >= 0)
+        if (job.id == TutorialJobId)
         {
-            SpawnNewJobForSlot(job.slotIndex);
+            tutorialJobCompleted = succeeded;
+            NotifyChanged();
+            return;
         }
+
+        if (!isTutorialMode && job.slotIndex >= 0)
+            SpawnNewJobForSlot(job.slotIndex);
 
         NotifyChanged();
     }
 
-    void SpawnNewJobForSlot(int slotIndex)
+    private void SpawnNewJobForSlot(int slotIndex)
     {
+        if (isTutorialMode) return;
+
         CustomerKind kind = GetRandomCustomerKind();
-        var newJob = CreateJob(kind);
+        JobOrder newJob = CreateJob(kind);
         newJob.slotIndex = slotIndex;
         availableJobs.Add(newJob);
     }
-   public void NotifyChanged()
+
+    public void NotifyChanged()
     {
         if (worldSpawner)
-        {
             worldSpawner.SyncCustomers(availableJobs);
-        }
 
         if (jobBoardUI && jobBoardUI.gameObject.activeSelf)
-        {
             jobBoardUI.Refresh();
-        }
-    }
-    public void AddJob(JobOrder job)
-    {
-        availableJobs.Add(job);
-        NotifyChanged(); 
     }
 
+    public void AddJob(JobOrder job)
+    {
+        if (job == null) return;
+
+        if (job.slotIndex < 0)
+            job.slotIndex = FindFreeSlotIndex();
+
+        availableJobs.Add(job);
+        NotifyChanged();
+    }
+
+    private int FindFreeSlotIndex()
+    {
+        int slots = Mathf.Max(1, customerSlots);
+
+        for (int i = 0; i < slots; i++)
+        {
+            bool used = false;
+
+            for (int j = 0; j < availableJobs.Count; j++)
+            {
+                if (availableJobs[j] != null && availableJobs[j].slotIndex == i)
+                {
+                    used = true;
+                    break;
+                }
+            }
+
+            if (!used) return i;
+        }
+
+        return 0;
+    }
+
+    private ItemSO GetFirstProductFrom(JobOrder job)
+    {
+        if (job != null && job.lines != null && job.lines.Count > 0 && job.lines[0] != null)
+            return job.lines[0].product;
+
+        if (chairItemSO != null) return chairItemSO;
+        if (productItems != null && productItems.Count > 0) return productItems[0];
+        return null;
+    }
 }

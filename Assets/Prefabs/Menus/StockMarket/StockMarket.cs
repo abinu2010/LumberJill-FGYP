@@ -29,132 +29,165 @@ public class StockMarket : MonoBehaviour
     [SerializeField] private TMP_Text moneyUI;
     [SerializeField] private TMP_Text lumberUI;
 
+    public bool IsOpen => stockMarketUIPanel != null && stockMarketUIPanel.activeInHierarchy;
+
     private void Start()
     {
-        gameManager = GameObject.FindWithTag("GameController");
-        if (gameManager != null)
-        {
-            realWorldData = gameManager.GetComponent<RealWorldData>();
-            inventory = gameManager.GetComponent<Inventory>();
-        }
-
-
-        amountToBuyUI.text = amountToBuy.ToString();
-        amountToSellUI.text = amountToSell.ToString();
-
-        maxSell = inventory.lumber;
-
+        AutoWire();
+        SetText(amountToBuyUI, amountToBuy.ToString());
+        SetText(amountToSellUI, amountToSell.ToString());
         UpdatePanelValues();
         UpdateHUD();
+        Close();
     }
 
     public void AddAmountSell(int amount)
     {
+        AutoWire();
         if (inventory == null) return;
 
         maxSell = inventory.lumber;
         amountToSell = Mathf.Clamp(amountToSell + amount, 0, maxSell);
-        amountToSellUI.text = amountToSell.ToString();
+        SetText(amountToSellUI, amountToSell.ToString());
         UpdatePanelValues();
     }
 
     public void SubtractAmountSell(int amount)
     {
         amountToSell = Mathf.Max(amountToSell - amount, 0);
-        amountToSellUI.text = amountToSell.ToString();
+        SetText(amountToSellUI, amountToSell.ToString());
         UpdatePanelValues();
     }
 
     public void ExecuteSell()
     {
+        AutoWire();
         if (inventory == null) return;
+        if (amountToSell <= 0) return;
+        if (inventory.lumber < amountToSell) return;
 
-        if (amountToSell > 0 && inventory.lumber >= amountToSell)
-        {
-            float total = amountToSell * lumberLastPrice;
-            inventory.money += total;
-            inventory.lumber -= amountToSell;
+        float total = amountToSell * lumberLastPrice;
+        inventory.ChangeLumber(-amountToSell);
+        inventory.AddMoney(total);
 
-            amountToSell = 0;
-            amountToSellUI.text = "0";
-            totalPriceSellUI.text = "0";
+        amountToSell = 0;
+        SetText(amountToSellUI, "0");
+        SetText(totalPriceSellUI, "0");
 
-            UpdatePanelValues();
-            UpdateHUD();
-            inventory.RefreshUI();
-        }
+        UpdatePanelValues();
+        UpdateHUD();
     }
 
     public void AddAmountBuy(int amount)
     {
+        AutoWire();
         if (inventory == null) return;
 
         UpdatePriceAndMaxBuy();
         amountToBuy = Mathf.Clamp(amountToBuy + amount, 0, maxBuy);
-        amountToBuyUI.text = amountToBuy.ToString();
+        SetText(amountToBuyUI, amountToBuy.ToString());
         UpdatePanelValues();
     }
 
     public void SubtractAmountBuy(int amount)
     {
         amountToBuy = Mathf.Max(amountToBuy - amount, 0);
-        amountToBuyUI.text = amountToBuy.ToString();
+        SetText(amountToBuyUI, amountToBuy.ToString());
         UpdatePanelValues();
     }
 
     public void ExecuteBuy()
     {
+        AutoWire();
         if (inventory == null) return;
+        if (amountToBuy <= 0) return;
 
-        if (amountToBuy > 0)
+        float totalCost = amountToBuy * lumberLastPrice;
+        if (!inventory.TrySpend(totalCost)) return;
+
+        inventory.ChangeLumber(amountToBuy);
+
+        amountToBuy = 0;
+        SetText(amountToBuyUI, "0");
+        SetText(totalPriceBuyUI, "0");
+
+        UpdatePanelValues();
+        UpdateHUD();
+    }
+
+    public void Open()
+    {
+        if (stockMarketUIPanel == null) return;
+
+        if (UIManager.Instance != null)
+            UIManager.Instance.Open(stockMarketUIPanel);
+        else
         {
-            float totalCost = amountToBuy * lumberLastPrice;
-            if (inventory.money >= totalCost)
-            {
-                inventory.money -= totalCost;
-                inventory.lumber += amountToBuy;
-
-                amountToBuy = 0;
-                amountToBuyUI.text = "0";
-                totalPriceBuyUI.text = "0";
-
-                UpdatePanelValues();
-                UpdateHUD();
-                inventory.RefreshUI();
-            }
+            stockMarketUIPanel.SetActive(true);
+            PlayerController.IsInputLocked = true;
         }
+
+        panelOpen = true;
+        UpdatePanelValues();
+        UpdateHUD();
+    }
+
+    public void Close()
+    {
+        if (stockMarketUIPanel == null) return;
+
+        if (UIManager.Instance != null)
+            UIManager.Instance.Close(stockMarketUIPanel);
+        else
+        {
+            stockMarketUIPanel.SetActive(false);
+            PlayerController.IsInputLocked = false;
+        }
+
+        panelOpen = false;
+    }
+
+    public void toggleStockMarketUI()
+    {
+        if (IsOpen)
+            Close();
+        else
+            Open();
     }
 
     private void UpdateHUD()
     {
+        AutoWire();
         if (inventory == null) return;
 
-        if (moneyUI != null)
-            moneyUI.text = Mathf.RoundToInt(inventory.money).ToString();
-        if (lumberUI != null)
-            lumberUI.text = inventory.lumber.ToString();
+        SetText(moneyUI, Mathf.RoundToInt(inventory.money).ToString());
+        SetText(lumberUI, inventory.lumber.ToString());
+        inventory.RefreshUI();
     }
 
     private void UpdatePanelValues()
     {
+        AutoWire();
         if (inventory == null) return;
 
         maxSell = inventory.lumber;
-
         UpdatePriceAndMaxBuy();
+        amountToSell = Mathf.Clamp(amountToSell, 0, maxSell);
+        amountToBuy = Mathf.Clamp(amountToBuy, 0, maxBuy);
 
-        if (totalPriceSellUI != null)
-            totalPriceSellUI.text = (amountToSell * lumberLastPrice).ToString("F2");
-        if (totalPriceBuyUI != null)
-            totalPriceBuyUI.text = (amountToBuy * lumberLastPrice).ToString("F2");
+        SetText(amountToSellUI, amountToSell.ToString());
+        SetText(amountToBuyUI, amountToBuy.ToString());
+        SetText(totalPriceSellUI, (amountToSell * lumberLastPrice).ToString("F2"));
+        SetText(totalPriceBuyUI, (amountToBuy * lumberLastPrice).ToString("F2"));
     }
 
     private void UpdatePriceAndMaxBuy()
     {
+        AutoWire();
+
         if (realWorldData == null)
         {
-            if (SimulatedRealWorldDataSet.tradeData != null &&
-                SimulatedRealWorldDataSet.tradeData.Length > 0)
+            if (SimulatedRealWorldDataSet.tradeData != null && SimulatedRealWorldDataSet.tradeData.Length > 0)
             {
                 int lastIndex = SimulatedRealWorldDataSet.tradeData.GetLength(0) - 1;
                 lumberLastPrice = SimulatedRealWorldDataSet.tradeData[lastIndex, 1];
@@ -166,20 +199,32 @@ public class StockMarket : MonoBehaviour
         }
 
         if (inventory != null && lumberLastPrice > 0f)
-        {
             maxBuy = Mathf.FloorToInt(inventory.money / lumberLastPrice);
-        }
         else
-        {
             maxBuy = 0;
-        }
     }
 
-    public void toggleStockMarketUI()
+    private void AutoWire()
     {
-        if (stockMarketUIPanel == null) return;
+        if (inventory != null) return;
 
-        panelOpen = !panelOpen;
-        stockMarketUIPanel.SetActive(panelOpen);
+        gameManager = GameObject.FindWithTag("GameController");
+        if (gameManager != null)
+        {
+            realWorldData = gameManager.GetComponent<RealWorldData>();
+            inventory = gameManager.GetComponent<Inventory>();
+        }
+
+        if (inventory == null)
+            inventory = FindFirstObjectByType<Inventory>();
+
+        if (realWorldData == null)
+            realWorldData = FindFirstObjectByType<RealWorldData>();
+    }
+
+    private void SetText(TMP_Text text, string value)
+    {
+        if (text != null)
+            text.text = value;
     }
 }

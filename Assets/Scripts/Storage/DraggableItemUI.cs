@@ -4,42 +4,62 @@ using UnityEngine.UI;
 
 public class DraggableItemUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
-    [SerializeField] public Canvas rootCanvas;      
+    [SerializeField] public Canvas rootCanvas;
     [SerializeField] public Image sourceIconImage;
-    private RectTransform dragVisual;  
-    private Image dragImage;
-    private Transform originalParent;
-    private IItemSource source;        
-    private NoOfItems payload;        
+
+    private RectTransform dragVisual;
+    private IItemSource source;
+    private NoOfItems payload;
+
     private void Awake()
     {
-        if (!rootCanvas) rootCanvas = GetComponentInParent<Canvas>();
-        if (!sourceIconImage) sourceIconImage = GetComponent<Image>();
-
-        source = GetComponent<IItemSource>() ?? GetComponentInParent<IItemSource>();
+        AutoWire();
     }
+
+    private void OnEnable()
+    {
+        AutoWire();
+    }
+
     public void OnBeginDrag(PointerEventData eventData)
     {
+        AutoWire();
+
         if (source == null) return;
+
         payload = source.TakeAll();
         if (payload.IsEmpty) return;
-        dragVisual = new GameObject("DraggingIcon", typeof(RectTransform), typeof(CanvasGroup), typeof(Image)).GetComponent<RectTransform>();
+
+        if (!rootCanvas)
+        {
+            source.PutBack(payload);
+            payload.Clear();
+            return;
+        }
+
+        GameObject visual = new GameObject("DraggingIcon", typeof(RectTransform), typeof(CanvasGroup), typeof(Image));
+        dragVisual = visual.GetComponent<RectTransform>();
         dragVisual.SetParent(rootCanvas.transform, false);
-        dragVisual.sizeDelta = (transform as RectTransform).rect.size;
+        dragVisual.SetAsLastSibling();
 
-        dragImage = dragVisual.GetComponent<Image>();
+        RectTransform selfRect = transform as RectTransform;
+        dragVisual.sizeDelta = selfRect != null ? selfRect.rect.size : new Vector2(64f, 64f);
+
+        Image dragImage = visual.GetComponent<Image>();
         dragImage.raycastTarget = false;
-        dragImage.sprite = payload.item.icon;
+        dragImage.preserveAspect = true;
+        dragImage.sprite = payload.item != null ? payload.item.icon : null;
 
-        var cg = dragVisual.GetComponent<CanvasGroup>();
+        CanvasGroup cg = visual.GetComponent<CanvasGroup>();
         cg.blocksRaycasts = false;
         cg.alpha = 0.8f;
 
-        dragVisual.position = eventData.position;
+        MoveVisual(eventData);
     }
+
     public void OnDrag(PointerEventData eventData)
     {
-        if (dragVisual) dragVisual.position = eventData.position;
+        MoveVisual(eventData);
     }
 
     public void OnEndDrag(PointerEventData eventData)
@@ -50,8 +70,10 @@ public class DraggableItemUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             payload.Clear();
         }
 
-        if (dragVisual) Destroy(dragVisual.gameObject);
+        if (dragVisual)
+            Destroy(dragVisual.gameObject);
     }
+
     public NoOfItems TakePayload()
     {
         NoOfItems p = payload;
@@ -62,11 +84,46 @@ public class DraggableItemUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     public void ReturnRemainder(NoOfItems remainder)
     {
         if (remainder.IsEmpty) return;
-        if (source != null) source.PutBack(remainder);
+        if (source != null)
+            source.PutBack(remainder);
+    }
+
+    private void MoveVisual(PointerEventData eventData)
+    {
+        if (!dragVisual || eventData == null) return;
+
+        RectTransform canvasRect = rootCanvas != null ? rootCanvas.transform as RectTransform : null;
+        if (canvasRect != null && rootCanvas.renderMode != RenderMode.WorldSpace)
+        {
+            Camera cam = rootCanvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : rootCanvas.worldCamera;
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, eventData.position, cam, out Vector2 localPoint);
+            dragVisual.anchoredPosition = localPoint;
+        }
+        else
+        {
+            dragVisual.position = eventData.position;
+        }
+    }
+
+    private void AutoWire()
+    {
+        if (!rootCanvas)
+            rootCanvas = GetComponentInParent<Canvas>();
+
+        if (!rootCanvas)
+            rootCanvas = FindFirstObjectByType<Canvas>();
+
+        if (!sourceIconImage)
+            sourceIconImage = GetComponent<Image>();
+
+        source = GetComponent<IItemSource>();
+        if (source == null)
+            source = GetComponentInParent<IItemSource>();
     }
 }
+
 public interface IItemSource
 {
-    NoOfItems TakeAll(); 
-    void PutBack(NoOfItems stack); 
+    NoOfItems TakeAll();
+    void PutBack(NoOfItems stack);
 }

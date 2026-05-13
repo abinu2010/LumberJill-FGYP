@@ -37,8 +37,9 @@ public class Tutorial : MonoBehaviour
     [SerializeField] private GameObject computer;
     [SerializeField] private GameObject computerUI;
     [Header("Shop tutorial purchase ")]
-    [SerializeField] private string[] requiredShopItemIds;
+    [SerializeField] private string[] requiredShopItemIds = new string[] { "Chair", "TableSaw", "LaserCutter", "Assembly" };
     private bool waitingForShopPurchases = false;
+    private bool shopInstructionReadyToHide = false;
 
     private bool stage1IntroDialogueComplete = false;
     private bool visitedLoadingBay = false;
@@ -106,16 +107,20 @@ public class Tutorial : MonoBehaviour
         taskPanel = t != null ? t.gameObject : null;
         if (taskPanel != null) taskPanel.SetActive(false);
 
-        var jobManager = FindFirstObjectByType<JobManager>();
-        if (jobManager != null)
+        jm = FindFirstObjectByType<JobManager>();
+        if (jm != null)
+            jm.BeginTutorialMode();
+
+        if (jobBoard == null)
         {
-            jobManager.customerSlots = 0;
-            jobManager.minLinesPerJob = 0;
-            jobManager.maxLinesPerJob = 0;
-            jobManager.minQuantityPerLine = 0;
-            jobManager.maxQuantityPerLine = 0;
-            jobManager.GenerateInitialJobs();
-            jobManager.NotifyChanged();
+            JobBoard foundBoard = FindFirstObjectByType<JobBoard>();
+            if (foundBoard != null) jobBoard = foundBoard.gameObject;
+        }
+
+        if (jobBoardUI == null)
+        {
+            JobBoardUI foundBoardUI = FindFirstObjectByType<JobBoardUI>();
+            if (foundBoardUI != null) jobBoardUI = foundBoardUI.gameObject;
         }
 
         if (doorLoadingBay != null) doorLoadingBay.GetComponentInChildren<Button>(true).onClick.AddListener(LoadingBayEnter);
@@ -128,14 +133,15 @@ public class Tutorial : MonoBehaviour
 
         if (customerUI != null)
         {
-            var card = customerUI.GetComponent<CustomerCardUI>();
-            if (card != null) card.OnShown.AddListener(CustomerTutorialTrigger);
+            CustomerCardUI card = customerUI.GetComponent<CustomerCardUI>();
+            if (card == null) card = customerUI.GetComponentInChildren<CustomerCardUI>(true);
 
-            var accept = customerUI.transform.Find("Accept");
-            if (accept != null)
+            if (card != null)
             {
-                var btn = accept.GetComponent<Button>();
-                if (btn != null) btn.onClick.AddListener(JobBoardIntroTrigger);
+                card.OnShown.RemoveListener(CustomerTutorialTrigger);
+                card.OnAccepted.RemoveListener(JobBoardIntroTrigger);
+                card.OnShown.AddListener(CustomerTutorialTrigger);
+                card.OnAccepted.AddListener(JobBoardIntroTrigger);
             }
         }
 
@@ -147,8 +153,12 @@ public class Tutorial : MonoBehaviour
 
         if (computer != null)
         {
-            var wb = computer.GetComponent<WorldShopBuilding>();
-            if (wb != null) wb.Opened.AddListener(OnComputerOpened);
+            WorldShopBuilding wb = computer.GetComponent<WorldShopBuilding>();
+            if (wb != null)
+            {
+                wb.Opened.RemoveListener(OnComputerOpened);
+                wb.Opened.AddListener(OnComputerOpened);
+            }
         }
 
         wc = null;
@@ -164,11 +174,19 @@ public class Tutorial : MonoBehaviour
 
         if (wc != null)
         {
+            wc.ComputerOpened.RemoveListener(OnComputerOpened);
             wc.ShopOpened.RemoveListener(OnShopOpened);
             wc.StockMarketOpened.RemoveListener(OnStockMarketOpened);
 
+            wc.ComputerOpened.AddListener(OnComputerOpened);
             wc.ShopOpened.AddListener(OnShopOpened);
             wc.StockMarketOpened.AddListener(OnStockMarketOpened);
+
+            if (wc.shopPanel != null)
+            {
+                wc.shopPanel.Purchased.RemoveListener(OnShopPurchased);
+                wc.shopPanel.Purchased.AddListener(OnShopPurchased);
+            }
         }
 
         if (computerUI != null)
@@ -180,7 +198,7 @@ public class Tutorial : MonoBehaviour
         dialogueIndex = 1;
         SetDialogue(true);
         Stage1Intro();
-        jm = FindFirstObjectByType<JobManager>();
+        if (jm == null) jm = FindFirstObjectByType<JobManager>();
 
         if (storageCrate != null)
         {
@@ -223,15 +241,7 @@ public class Tutorial : MonoBehaviour
     {
         if (jm == null) jm = FindFirstObjectByType<JobManager>();
         if (jm == null) return false;
-
-        var jobs = jm.ActiveJobs;
-        for (int i = 0; i < jobs.Count; i++)
-        {
-            var j = jobs[i];
-            if (j != null && j.id == "JOB_TUTORIAL" && j.isCompleted)
-                return true;
-        }
-        return false;
+        return jm.TutorialJobCompleted;
     }
 
     void SetTutorialRaycast(bool on)
@@ -242,23 +252,70 @@ public class Tutorial : MonoBehaviour
     }
     bool RequiredShopBuysComplete()
     {
-        if (requiredShopItemIds == null || requiredShopItemIds.Length == 0) return true;
+        string[] ids = requiredShopItemIds;
 
-        for (int i = 0; i < requiredShopItemIds.Length; i++)
+        if (ids == null || ids.Length == 0)
+            ids = new string[] { "Chair", "TableSaw", "LaserCutter", "Assembly" };
+
+        for (int i = 0; i < ids.Length; i++)
         {
-            var id = requiredShopItemIds[i];
+            string id = ids[i];
             if (string.IsNullOrEmpty(id)) continue;
 
-            if (PlayerPrefs.GetInt("ShopOwned_" + id, 0) != 1)
+            if (!ShopRequirementComplete(id))
                 return false;
         }
 
         return true;
     }
 
+    bool ShopRequirementComplete(string id)
+    {
+        if (PlayerPrefs.GetInt("ShopOwned_" + id, 0) == 1) return true;
+        if (PlayerPrefs.GetInt("RecipeUnlocked_" + id, 0) == 1) return true;
+        if (PlayerPrefs.GetInt("MachineOwned_" + id, 0) == 1) return true;
+        return false;
+    }
+
+    void OnShopPurchased(ShopItemSO item)
+    {
+        if (!waitingForShopPurchases) return;
+        if (!RequiredShopBuysComplete()) return;
+        CompleteRequiredShopPurchases();
+    }
+
+    void CompleteRequiredShopPurchases()
+    {
+        if (!waitingForShopPurchases) return;
+
+        waitingForShopPurchases = false;
+        shopInstructionReadyToHide = false;
+        SetTutorialRaycast(true);
+        SetDialogue(false);
+
+        if (wc != null && wc.shopPanel != null)
+            wc.shopPanel.Close();
+
+        visitedShop = true;
+        shopUIOpened = false;
+        dialogueIndex = 1;
+
+        stockIntroComplete = false;
+        waitingForStockOpen = false;
+        stockUIOpened = false;
+
+        StockIntro();
+    }
+
 
     void Update()
     {
+        if (waitingForShopPurchases && RequiredShopBuysComplete())
+        {
+            CompleteRequiredShopPurchases();
+            return;
+        }
+
         bool pressed = false;
 
         if (Input.touchCount > 0)
@@ -268,29 +325,24 @@ public class Tutorial : MonoBehaviour
 
         if (!pressed && Input.GetMouseButtonDown(0)) pressed = true;
         if (!pressed) return;
-        if (!tutorialTextActive && !waitingForStorageOpen && !waitingForWoodInHotbar && !waitingForTutorialJobComplete && !showingTutorialEndMessage) return;
-        if (waitingForShopPurchases)
+
+        if (shopInstructionReadyToHide)
         {
-            if (!RequiredShopBuysComplete()) return;
+            shopInstructionReadyToHide = false;
+            waitingForShopPurchases = true;
+            SetDialogue(false, false);
+            SetTutorialRaycast(false);
+            dialogueIndex = 5;
 
-            waitingForShopPurchases = false;
-            SetTutorialRaycast(true);
+            if (RequiredShopBuysComplete())
+                CompleteRequiredShopPurchases();
 
-            if (wc != null && wc.shopPanel != null)
-                wc.shopPanel.Close();
-
-            visitedShop = true;
-            shopUIOpened = false;
-            dialogueIndex = 1;
-
-            stockIntroComplete = false;
-            waitingForStockOpen = false;
-            stockUIOpened = false;
-
-            StockIntro();
             return;
         }
 
+        if (!tutorialTextActive && !waitingForStorageOpen && !waitingForWoodInHotbar && !waitingForTutorialJobComplete && !showingTutorialEndMessage && !waitingForShopPurchases) return;
+
+        if (waitingForShopPurchases) return;
 
         dialogueIndex++;
 
@@ -424,8 +476,16 @@ public class Tutorial : MonoBehaviour
     void OnShopOpened()
     {
         if (currentStage != 2) return;
-        if (!waitingForShopOpen) return;
         if (visitedShop) return;
+
+        if (!waitingForShopOpen && !shopIntroComplete && computerIntroComplete)
+        {
+            shopIntroComplete = true;
+            waitingForShopOpen = true;
+            dialogueIndex = 1;
+        }
+
+        if (!waitingForShopOpen) return;
 
         waitingForShopOpen = false;
         shopUIOpened = true;
@@ -441,15 +501,23 @@ public class Tutorial : MonoBehaviour
     void DelayedShopTutorialStart()
     {
         dialogueIndex = 1;
-        SetDialogue(true);
+        SetDialogue(true, false);
         ShopTutorial();
     }
 
     void OnStockMarketOpened()
     {
         if (currentStage != 2) return;
-        if (!waitingForStockOpen) return;
         if (visitedStockMarket) return;
+
+        if (!waitingForStockOpen && !stockIntroComplete && visitedShop)
+        {
+            stockIntroComplete = true;
+            waitingForStockOpen = true;
+            dialogueIndex = 1;
+        }
+
+        if (!waitingForStockOpen) return;
 
         waitingForStockOpen = false;
         stockUIOpened = true;
@@ -465,19 +533,24 @@ public class Tutorial : MonoBehaviour
     void DelayedStockTutorialStart()
     {
         dialogueIndex = 1;
-        SetDialogue(true);
+        SetDialogue(true, false);
         StockMarketTutorial();
     }
 
     void SetDialogue(bool on)
+    {
+        SetDialogue(on, on);
+    }
+
+    void SetDialogue(bool on, bool blockRaycasts)
     {
         if (textPanel != null) textPanel.SetActive(on);
         tutorialTextActive = on;
 
         if (cg != null)
         {
-            cg.blocksRaycasts = on;
-            cg.interactable = on;
+            cg.blocksRaycasts = on && blockRaycasts;
+            cg.interactable = on && blockRaycasts;
             cg.alpha = 1f;
         }
     }
@@ -624,32 +697,9 @@ public class Tutorial : MonoBehaviour
 
     void NPCSpawn()
     {
-        var jobManager = FindFirstObjectByType<JobManager>();
-        if (jobManager != null)
-        {
-            jobManager.customerSlots = 1;
-            jobManager.GenerateInitialJobs();
-
-            var tutorialJob = new JobOrder
-            {
-                id = "JOB_TUTORIAL",
-                customer = CustomerKind.Charlie,
-                deadlineSeconds = 3 * 60 * 2,
-                goldReward = 50,
-                xpReward = 0
-            };
-
-            if (chairItemSO != null)
-            {
-                tutorialJob.lines.Add(new JobLine
-                {
-                    product = chairItemSO,
-                    quantity = 1
-                });
-            }
-
-            jobManager.AddJob(tutorialJob);
-        }
+        if (jm == null) jm = FindFirstObjectByType<JobManager>();
+        if (jm != null)
+            jm.StartTutorialJob(chairItemSO);
     }
 
     void Stage2Intro()
@@ -674,9 +724,16 @@ public class Tutorial : MonoBehaviour
     {
         if (currentStage == 2)
         {
-            customerUI.GetComponentInChildren<CustomerCardUI>(true).OnShown.RemoveListener(CustomerTutorialTrigger);
-            var a = customerUI.transform.Find("Tutorial_Arrow");
-            if (a != null) a.gameObject.SetActive(true);
+            CustomerCardUI card = customerUI != null ? customerUI.GetComponentInChildren<CustomerCardUI>(true) : null;
+            if (card != null) card.OnShown.RemoveListener(CustomerTutorialTrigger);
+
+            Transform a = customerUI != null ? FindDeepByName(customerUI.transform, "Tutorial_Arrow") : null;
+            if (a != null)
+            {
+                a.gameObject.SetActive(true);
+                SetArrowClickThrough(a);
+            }
+
             dialogueIndex = 1;
             CustomerTutorial();
         }
@@ -705,14 +762,16 @@ public class Tutorial : MonoBehaviour
     {
         if (currentStage == 2)
         {
+            if (jobBoard == null)
+            {
+                JobBoard foundBoard = FindFirstObjectByType<JobBoard>();
+                if (foundBoard != null) jobBoard = foundBoard.gameObject;
+            }
+
             SetWorldArrow(jobBoard, true);
 
-            var accept = customerUI.transform.Find("Accept");
-            if (accept != null)
-            {
-                var btn = accept.GetComponent<Button>();
-                if (btn != null) btn.onClick.RemoveListener(JobBoardIntroTrigger);
-            }
+            CustomerCardUI card = customerUI != null ? customerUI.GetComponentInChildren<CustomerCardUI>(true) : null;
+            if (card != null) card.OnAccepted.RemoveListener(JobBoardIntroTrigger);
 
             dialogueIndex = 1;
             JobBoardIntro();
@@ -725,7 +784,7 @@ public class Tutorial : MonoBehaviour
         {
             if (dialogueIndex == 1)
             {
-                var a = customerUI.transform.Find("Tutorial_Arrow");
+                Transform a = customerUI != null ? FindDeepByName(customerUI.transform, "Tutorial_Arrow") : null;
                 if (a != null) a.gameObject.SetActive(false);
 
                 SetDialogue(true);
@@ -800,13 +859,13 @@ public class Tutorial : MonoBehaviour
             SetUIArrow("Tutorial_Arrow", true);
             SetUIArrow("Tutorial_Arrow_Stock", false);
 
-            SetDialogue(true);
+            SetDialogue(true, false);
             if (tutorialText != null)
-                tutorialText.text = "first, click on the shop icon to open the app";
+                tutorialText.text = "Click the shop icon once to open the shop.";
             return;
         }
 
-        SetDialogue(false);
+        SetDialogue(false, false);
         shopIntroComplete = true;
         waitingForShopOpen = true;
         dialogueIndex = 1;
@@ -818,25 +877,53 @@ public class Tutorial : MonoBehaviour
 
         if (dialogueIndex == 1)
         {
-            SetDialogue(true);
+            SetDialogue(true, false);
             if (tutorialText != null)
-                tutorialText.text = "There's two tabs, let's go to the blueprints tab first to purchase the design for the chair";
+                tutorialText.text = "There are two tabs. Open the blueprints tab first and buy the chair blueprint.";
             return;
         }
-        if (dialogueIndex == 2) { if (tutorialText != null) tutorialText.text = "Great! Now let's go to the machines tab to purchase the machines we need to make the chair"; return; }
-        if (dialogueIndex == 3) { if (tutorialText != null) tutorialText.text = "We need a Table Saw to roughly cut the wood, a Laser Cutter to make more precise cuts and an assembly station to put it all together"; return; }
-        if (dialogueIndex == 4) { if (tutorialText != null) tutorialText.text = "As customers begin to ask for more complex items, we'll need to upgrade our machines so come back here often to check for new blueprints and machine upgrades!"; return; }
+
+        if (dialogueIndex == 2)
+        {
+            SetDialogue(true, false);
+            if (tutorialText != null)
+                tutorialText.text = "Then open the machines tab and buy the machines needed for the chair.";
+            return;
+        }
+
+        if (dialogueIndex == 3)
+        {
+            SetDialogue(true, false);
+            if (tutorialText != null)
+                tutorialText.text = "You need the Table Saw, Laser Cutter and Assembly Station.";
+            return;
+        }
+
+        if (dialogueIndex == 4)
+        {
+            SetDialogue(true, false);
+            if (tutorialText != null)
+                tutorialText.text = "Later customers will need harder items, so you will come back here for more blueprints and upgrades.";
+            return;
+        }
 
         if (dialogueIndex == 5)
         {
+            SetDialogue(true, false);
+            shopInstructionReadyToHide = true;
             if (tutorialText != null)
-                tutorialText.text = "Now buy the chair blueprint and buy all the machines we need. When you are done, tap anywhere to continue.";
+                tutorialText.text = "Now buy the chair blueprint and all needed machines. Tap anywhere once to hide this message, then finish buying them.";
             return;
         }
 
+        shopInstructionReadyToHide = false;
         waitingForShopPurchases = true;
+        SetDialogue(false, false);
         SetTutorialRaycast(false);
         dialogueIndex = 5;
+
+        if (RequiredShopBuysComplete())
+            CompleteRequiredShopPurchases();
     }
 
 
@@ -851,13 +938,13 @@ public class Tutorial : MonoBehaviour
             SetUIArrow("Tutorial_Arrow", false);
             SetUIArrow("Tutorial_Arrow_Stock", true);
 
-            SetDialogue(true);
+            SetDialogue(true, false);
             if (tutorialText != null)
-                tutorialText.text = "Now that we have the blueprints and machines we need, click the stock market icon to open the app";
+                tutorialText.text = "Click the stock market icon once to open the stock market.";
             return;
         }
 
-        SetDialogue(false);
+        SetDialogue(false, false);
         stockIntroComplete = true;
         waitingForStockOpen = true;
         dialogueIndex = 1;
@@ -865,40 +952,64 @@ public class Tutorial : MonoBehaviour
 
     void StockMarketTutorial()
     {
-        if (currentStage == 2)
+        if (currentStage != 2) return;
+
+        if (dialogueIndex == 1)
         {
-            if (dialogueIndex == 1)
-            {
-                SetDialogue(true);
-                if (tutorialText != null)
-                    tutorialText.text = "Now that we have the blueprints and machines we need, let's go to the stock market app to purchase some wood to make the chair.";
-                return;
-            }
-            if (dialogueIndex == 2) { if (tutorialText != null) tutorialText.text = "Here we can see the price of lumber from the past 24 hours represented by a graph"; return; }
-            if (dialogueIndex == 3) { if (tutorialText != null) tutorialText.text = "each bar represents the price of lumber for that hour, green bars mean the price went up and red bars mean the price went down"; return; }
-            if (dialogueIndex == 4) { if (tutorialText != null) tutorialText.text = "To buy lumber, simply enter the amount you want to purchase and click the buy button."; return; }
-            if (dialogueIndex == 5) { if (tutorialText != null) tutorialText.text = "we need [insert amount] of lumber to make the chair for our customer."; return; }
-            if (dialogueIndex == 6) { if (tutorialText != null) tutorialText.text = "Once you've purchased the lumber, it will be delivered to our storage room so we can collect it from there."; return; }
-            if (dialogueIndex == 7) { if (tutorialText != null) tutorialText.text = "The price changes every hour so be sure to check back often!"; return; }
-            if (dialogueIndex == 8)
-            {
-                SetDialogue(true);
-                if (tutorialText != null)
-                    tutorialText.text = "If you're smart you can buy lumber when the price is low and sell it back on the stock market when the price is high to make a profit!";
-                return;
-            }
-            SetDialogue(false);
-            visitedStockMarket = true;
-            stockUIOpened = false;
-            dialogueIndex = 1;
-            currentStage = 3;
-
-            dialogueIndex = 1;
-            SetDialogue(true);
-            StorageUITutorial();
+            SetDialogue(true, false);
+            if (tutorialText != null)
+                tutorialText.text = "Use the stock market to buy lumber for the chair.";
             return;
-
         }
+
+        if (dialogueIndex == 2)
+        {
+            SetDialogue(true, false);
+            if (tutorialText != null)
+                tutorialText.text = "The graph shows the lumber price from the past 24 hours.";
+            return;
+        }
+
+        if (dialogueIndex == 3)
+        {
+            SetDialogue(true, false);
+            if (tutorialText != null)
+                tutorialText.text = "Green bars mean the price went up. Red bars mean the price went down.";
+            return;
+        }
+
+        if (dialogueIndex == 4)
+        {
+            SetDialogue(true, false);
+            if (tutorialText != null)
+                tutorialText.text = "Enter the amount of lumber you want, then click buy.";
+            return;
+        }
+
+        if (dialogueIndex == 5)
+        {
+            SetDialogue(true, false);
+            if (tutorialText != null)
+                tutorialText.text = "Buy enough lumber for the chair. It will go to storage.";
+            return;
+        }
+
+        if (dialogueIndex == 6)
+        {
+            SetDialogue(true, false);
+            if (tutorialText != null)
+                tutorialText.text = "You can also sell lumber later if the price goes higher.";
+            return;
+        }
+
+        SetDialogue(false, false);
+        visitedStockMarket = true;
+        stockUIOpened = false;
+        dialogueIndex = 1;
+        currentStage = 3;
+
+        SetDialogue(true);
+        StorageUITutorial();
     }
 
     void StorageUITutorial()
@@ -975,12 +1086,9 @@ public class Tutorial : MonoBehaviour
     }
     void RestoreNormalCustomers()
     {
-        var jobManager = FindFirstObjectByType<JobManager>();
-        if (jobManager == null) return;
-
-        jobManager.customerSlots = 3;
-        jobManager.GenerateInitialJobs();
-        jobManager.NotifyChanged();
+        if (jm == null) jm = FindFirstObjectByType<JobManager>();
+        if (jm == null) return;
+        jm.EndTutorialAndStartRealGame();
     }
 
     void TutorialEndMessage()
@@ -1006,9 +1114,13 @@ public class Tutorial : MonoBehaviour
     void SetWorldArrow(GameObject root, bool on)
     {
         if (root == null) return;
-        var a = root.transform.Find("Canvas/Tutorial_Arrow");
+
+        Transform a = root.transform.Find("Canvas/Tutorial_Arrow");
+        if (a == null) a = FindDeepByName(root.transform, "Tutorial_Arrow");
         if (a == null) return;
+
         a.gameObject.SetActive(on);
+        SetArrowClickThrough(a);
     }
 
     void SetUIArrow(string name, bool on)
@@ -1017,6 +1129,7 @@ public class Tutorial : MonoBehaviour
         var t = FindDeepByName(computerUI.transform, name);
         if (t == null) return;
         t.gameObject.SetActive(on);
+        SetArrowClickThrough(t);
     }
 
     void SetArrowClickThrough(Transform arrowRoot)
