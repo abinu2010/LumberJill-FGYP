@@ -19,5 +19,5 @@ MonoBehaviour:
   maxStack: 20
   gridWidth: 1
   gridHeight: 1
-  isProductionSquarePiece: 1
+  isProductionSquarePiece: 0
   worldPrefab: {fileID: 0}

@@ -17,7 +17,7 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: 83f7c55698cd5c74a8e149a1892cdb27, type: 3}
   category: 0
   maxStack: 20
-  gridWidth: 5
-  gridHeight: 5
-  isProductionSquarePiece: 1
+  gridWidth: 1
+  gridHeight: 1
+  isProductionSquarePiece: 0
   worldPrefab: {fileID: 0}
