@@ -114,7 +114,6 @@ GameObject:
   - component: {fileID: 7180692192641625532}
   - component: {fileID: 1329089319622168570}
   - component: {fileID: 8938694957721062809}
-  - component: {fileID: 1743105001760298365}
   m_Layer: 6
   m_Name: Computer
   m_TagString: Untagged
@@ -197,6 +196,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   computerUI: {fileID: 0}
+  Opened:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!65 &8938694957721062809
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -218,21 +220,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.617052, y: 2.0278265, z: 1.4544402}
   m_Center: {x: -0.7011971, y: -0.6950102, z: -0.13200328}
---- !u!114 &1743105001760298365
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7442410864059555201}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 826755c6d59720c48936228b6c2ae995, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  computerPanel: {fileID: 0}
-  shopPanel: {fileID: 0}
-  stockMarket: {fileID: 0}
 --- !u!1001 &2436770453825091390
 PrefabInstance:
   m_ObjectHideFlags: 0

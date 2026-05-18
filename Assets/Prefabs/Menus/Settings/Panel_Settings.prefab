@@ -1513,7 +1513,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 4196572986356752229}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: SettingsMenu, Assembly-CSharp
         m_MethodName: QuitGame
         m_Mode: 1
@@ -1536,7 +1536,6 @@ GameObject:
   - component: {fileID: 1951913295720284434}
   - component: {fileID: 7255514711215542625}
   - component: {fileID: 8003124449069669929}
-  - component: {fileID: 4196572986356752229}
   m_Layer: 5
   m_Name: Panel_Settings
   m_TagString: Untagged
@@ -1604,29 +1603,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &4196572986356752229
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8452628054447745541}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 392d945a2f4436048ae41a5859b32bf8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  settingsPanelPrefab: {fileID: 8452628054447745541}
-  panelParentOverride: {fileID: 1951913295720284434}
-  openButton: {fileID: 0}
-  toggleKey: 27
-  tapOutsideToClose: 1
-  useAndroidBackButton: 1
-  mixer: {fileID: 24100000, guid: 98fcd459ad6782b42a9cd3fa336f2e62, type: 2}
-  musicParam: MusicVol
-  sfxParam: SFXVol
-  pauseOnOpen: 1
-  lockPlayerInputOnOpen: 0
 --- !u!1 &8665817304687856096
 GameObject:
   m_ObjectHideFlags: 0

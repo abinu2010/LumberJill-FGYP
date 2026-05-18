@@ -5,18 +5,23 @@ using System.Linq;
 
 public class SettingsMenu : MonoBehaviour
 {
-    [Header("Prefab (from Project)")]
-    [SerializeField] private GameObject settingsPanelPrefab;
-    [SerializeField] private Transform panelParentOverride;
+    [Header("Panel In Scene")]
+    [SerializeField] private GameObject settingsPanel;
 
     [Header("Buttons")]
     [SerializeField] private Button openButton;
+    [SerializeField] private Button closeButton;
+    [SerializeField] private Button quitButton;
+
+    [Header("Button Names")]
+    [SerializeField] private string closeButtonName = "CloseButton";
+    [SerializeField] private string quitButtonName = "QuitButton";
+
+    [Header("Keyboard")]
     [SerializeField] private KeyCode toggleKey = KeyCode.Escape;
 
     [Header("Mobile Settings")]
-    [Tooltip("On mobile, tapping outside the panel closes it")]
     [SerializeField] private bool tapOutsideToClose = true;
-    [Tooltip("back button for mobile Android back button behavior")]
     [SerializeField] private bool useAndroidBackButton = true;
 
     [Header("Audio Mixer")]
@@ -25,14 +30,12 @@ public class SettingsMenu : MonoBehaviour
     [SerializeField] private string sfxParam = "SFXVol";
 
     [Header("Behaviour")]
+    [SerializeField] private bool closeOnStart = true;
     [SerializeField] private bool pauseOnOpen = false;
     [SerializeField] private bool lockPlayerInputOnOpen = true;
 
-    private GameObject panelInstance;
     private Slider musicSlider;
     private Slider sfxSlider;
-    private Button closeButton;
-    private Button quitButton;
     private RectTransform panelRect;
 
     private string MusicKey => $"VOL_{musicParam}";
@@ -40,31 +43,48 @@ public class SettingsMenu : MonoBehaviour
 
     private void Awake()
     {
-        if (settingsPanelPrefab == null)
+        if (settingsPanel == null)
         {
             return;
         }
 
-        Transform parent = panelParentOverride;
+        panelRect = settingsPanel.GetComponent<RectTransform>();
 
-        if (parent == null)
+        FindSliders();
+        FindButtons();
+        WireButtons();
+        LoadSavedVolumes();
+
+        if (closeOnStart)
         {
-            Canvas c = GetComponentInParent<Canvas>();
-            parent = c != null ? c.transform : null;
+            settingsPanel.SetActive(false);
+        }
+    }
+
+    private void Update()
+    {
+        if (toggleKey != KeyCode.None && Input.GetKeyDown(toggleKey))
+        {
+            Toggle();
         }
 
-        panelInstance = Instantiate(settingsPanelPrefab, parent);
-        panelInstance.name = settingsPanelPrefab.name + "_INSTANCE";
-        panelInstance.SetActive(false);
-
-        panelRect = panelInstance.GetComponent<RectTransform>();
-
-        if (openButton != null)
+        if (useAndroidBackButton && toggleKey != KeyCode.Escape && Input.GetKeyDown(KeyCode.Escape))
         {
-            openButton.onClick.AddListener(Toggle);
+            if (settingsPanel != null && settingsPanel.activeSelf)
+            {
+                Close();
+            }
         }
 
-        var sliders = panelInstance.GetComponentsInChildren<Slider>(true);
+        if (tapOutsideToClose && settingsPanel != null && settingsPanel.activeSelf)
+        {
+            HandleTapOutsideToClose();
+        }
+    }
+
+    private void FindSliders()
+    {
+        Slider[] sliders = settingsPanel.GetComponentsInChildren<Slider>(true);
 
         musicSlider = sliders.FirstOrDefault(s => s.name.ToLower().Contains("music"));
         sfxSlider = sliders.FirstOrDefault(s => s.name.ToLower().Contains("sfx"));
@@ -93,6 +113,7 @@ public class SettingsMenu : MonoBehaviour
         {
             musicSlider.minValue = 0f;
             musicSlider.maxValue = 1f;
+            musicSlider.onValueChanged.RemoveListener(SetMusicVolumeFromSlider);
             musicSlider.onValueChanged.AddListener(SetMusicVolumeFromSlider);
         }
 
@@ -100,25 +121,49 @@ public class SettingsMenu : MonoBehaviour
         {
             sfxSlider.minValue = 0f;
             sfxSlider.maxValue = 1f;
+            sfxSlider.onValueChanged.RemoveListener(SetSfxVolumeFromSlider);
             sfxSlider.onValueChanged.AddListener(SetSfxVolumeFromSlider);
         }
+    }
 
-        closeButton = panelInstance.GetComponentsInChildren<Button>(true)
-            .FirstOrDefault(b => b.name.ToLower().Contains("close"));
+    private void FindButtons()
+    {
+        Button[] buttons = settingsPanel.GetComponentsInChildren<Button>(true);
+
+        if (closeButton == null)
+        {
+            closeButton = buttons.FirstOrDefault(b => b.name == closeButtonName);
+        }
+
+        if (quitButton == null)
+        {
+            quitButton = buttons.FirstOrDefault(b => b.name == quitButtonName);
+        }
+    }
+
+    private void WireButtons()
+    {
+        if (openButton != null)
+        {
+            openButton.onClick.RemoveListener(Toggle);
+            openButton.onClick.AddListener(Toggle);
+        }
 
         if (closeButton != null)
         {
+            closeButton.onClick.RemoveListener(Close);
             closeButton.onClick.AddListener(Close);
         }
 
-        quitButton = panelInstance.GetComponentsInChildren<Button>(true)
-            .FirstOrDefault(b => b.name.ToLower().Contains("quit"));
-
         if (quitButton != null)
         {
+            quitButton.onClick.RemoveListener(QuitGame);
             quitButton.onClick.AddListener(QuitGame);
         }
+    }
 
+    private void LoadSavedVolumes()
+    {
         float savedMusic = PlayerPrefs.GetFloat(MusicKey, 1f);
         float savedSfx = PlayerPrefs.GetFloat(SfxKey, 1f);
 
@@ -134,33 +179,6 @@ public class SettingsMenu : MonoBehaviour
 
         ApplyVolumeToMixer(musicParam, savedMusic);
         ApplyVolumeToMixer(sfxParam, savedSfx);
-    }
-
-    private void Update()
-    {
-        if (toggleKey != KeyCode.None && Input.GetKeyDown(toggleKey))
-        {
-            if (useAndroidBackButton && toggleKey == KeyCode.Escape && panelInstance != null && panelInstance.activeSelf)
-            {
-                Close();
-                return;
-            }
-
-            Toggle();
-        }
-
-        if (useAndroidBackButton && toggleKey != KeyCode.Escape && Input.GetKeyDown(KeyCode.Escape))
-        {
-            if (panelInstance != null && panelInstance.activeSelf)
-            {
-                Close();
-            }
-        }
-
-        if (tapOutsideToClose && panelInstance != null && panelInstance.activeSelf)
-        {
-            HandleTapOutsideToClose();
-        }
     }
 
     private void HandleTapOutsideToClose()
@@ -198,17 +216,17 @@ public class SettingsMenu : MonoBehaviour
 
     public void Open()
     {
-        if (panelInstance == null)
+        if (settingsPanel == null)
         {
             return;
         }
 
-        if (panelInstance.activeSelf)
+        if (settingsPanel.activeSelf)
         {
             return;
         }
 
-        panelInstance.SetActive(true);
+        settingsPanel.SetActive(true);
 
         if (pauseOnOpen)
         {
@@ -223,17 +241,17 @@ public class SettingsMenu : MonoBehaviour
 
     public void Close()
     {
-        if (panelInstance == null)
+        if (settingsPanel == null)
         {
             return;
         }
 
-        if (!panelInstance.activeSelf)
+        if (!settingsPanel.activeSelf)
         {
             return;
         }
 
-        panelInstance.SetActive(false);
+        settingsPanel.SetActive(false);
 
         if (pauseOnOpen)
         {
@@ -248,12 +266,12 @@ public class SettingsMenu : MonoBehaviour
 
     public void Toggle()
     {
-        if (panelInstance == null)
+        if (settingsPanel == null)
         {
             return;
         }
 
-        if (panelInstance.activeSelf)
+        if (settingsPanel.activeSelf)
         {
             Close();
         }
@@ -275,40 +293,40 @@ public class SettingsMenu : MonoBehaviour
 #endif
     }
 
-    private void SetMusicVolumeFromSlider(float v)
+    private void SetMusicVolumeFromSlider(float value)
     {
-        ApplyVolumeToMixer(musicParam, v);
-        PlayerPrefs.SetFloat(MusicKey, v);
+        ApplyVolumeToMixer(musicParam, value);
+        PlayerPrefs.SetFloat(MusicKey, value);
     }
 
-    private void SetSfxVolumeFromSlider(float v)
+    private void SetSfxVolumeFromSlider(float value)
     {
-        ApplyVolumeToMixer(sfxParam, v);
-        PlayerPrefs.SetFloat(SfxKey, v);
+        ApplyVolumeToMixer(sfxParam, value);
+        PlayerPrefs.SetFloat(SfxKey, value);
     }
 
-    private void ApplyVolumeToMixer(string param, float slider01)
+    private void ApplyVolumeToMixer(string param, float sliderValue)
     {
         if (mixer == null)
         {
             return;
         }
 
-        float clamped = Mathf.Clamp(slider01, 0.0001f, 1f);
-        float dB = Mathf.Log10(clamped) * 20f;
-        mixer.SetFloat(param, dB);
+        float clamped = Mathf.Clamp(sliderValue, 0.0001f, 1f);
+        float decibels = Mathf.Log10(clamped) * 20f;
+        mixer.SetFloat(param, decibels);
     }
 
     private void TrySetPlayerInputLocked(bool locked)
     {
-        var type = System.Type.GetType("PlayerController");
+        System.Type type = System.Type.GetType("PlayerController");
 
         if (type == null)
         {
             return;
         }
 
-        var field = type.GetField(
+        System.Reflection.FieldInfo field = type.GetField(
             "IsInputLocked",
             System.Reflection.BindingFlags.Public |
             System.Reflection.BindingFlags.Static
