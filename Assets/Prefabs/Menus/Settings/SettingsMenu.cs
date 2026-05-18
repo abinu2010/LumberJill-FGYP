@@ -6,8 +6,8 @@ using System.Linq;
 public class SettingsMenu : MonoBehaviour
 {
     [Header("Prefab (from Project)")]
-    [SerializeField] private GameObject settingsPanelPrefab;   
-    [SerializeField] private Transform panelParentOverride;    
+    [SerializeField] private GameObject settingsPanelPrefab;
+    [SerializeField] private Transform panelParentOverride;
 
     [Header("Buttons")]
     [SerializeField] private Button openButton;
@@ -16,7 +16,7 @@ public class SettingsMenu : MonoBehaviour
     [Header("Mobile Settings")]
     [Tooltip("On mobile, tapping outside the panel closes it")]
     [SerializeField] private bool tapOutsideToClose = true;
-    [Tooltip(" back button for mobile (Android back button behavior)")]
+    [Tooltip("back button for mobile Android back button behavior")]
     [SerializeField] private bool useAndroidBackButton = true;
 
     [Header("Audio Mixer")]
@@ -28,11 +28,11 @@ public class SettingsMenu : MonoBehaviour
     [SerializeField] private bool pauseOnOpen = false;
     [SerializeField] private bool lockPlayerInputOnOpen = true;
 
-    // runtime
     private GameObject panelInstance;
     private Slider musicSlider;
     private Slider sfxSlider;
     private Button closeButton;
+    private Button quitButton;
     private RectTransform panelRect;
 
     private string MusicKey => $"VOL_{musicParam}";
@@ -46,6 +46,7 @@ public class SettingsMenu : MonoBehaviour
         }
 
         Transform parent = panelParentOverride;
+
         if (parent == null)
         {
             Canvas c = GetComponentInParent<Canvas>();
@@ -62,19 +63,31 @@ public class SettingsMenu : MonoBehaviour
         {
             openButton.onClick.AddListener(Toggle);
         }
+
         var sliders = panelInstance.GetComponentsInChildren<Slider>(true);
 
         musicSlider = sliders.FirstOrDefault(s => s.name.ToLower().Contains("music"));
         sfxSlider = sliders.FirstOrDefault(s => s.name.ToLower().Contains("sfx"));
 
         if (musicSlider == null)
+        {
             musicSlider = sliders.FirstOrDefault(s => s.CompareTag("MusicVolume"));
+        }
+
         if (sfxSlider == null)
+        {
             sfxSlider = sliders.FirstOrDefault(s => s.CompareTag("SfxVolume"));
+        }
 
-        if (musicSlider == null && sliders.Length > 0) musicSlider = sliders[0];
-        if (sfxSlider == null && sliders.Length > 1) sfxSlider = sliders[1];
+        if (musicSlider == null && sliders.Length > 0)
+        {
+            musicSlider = sliders[0];
+        }
 
+        if (sfxSlider == null && sliders.Length > 1)
+        {
+            sfxSlider = sliders[1];
+        }
 
         if (musicSlider != null)
         {
@@ -91,19 +104,33 @@ public class SettingsMenu : MonoBehaviour
         }
 
         closeButton = panelInstance.GetComponentsInChildren<Button>(true)
-                                   .FirstOrDefault(b => b.name.ToLower().Contains("close"));
+            .FirstOrDefault(b => b.name.ToLower().Contains("close"));
 
         if (closeButton != null)
         {
             closeButton.onClick.AddListener(Close);
         }
 
+        quitButton = panelInstance.GetComponentsInChildren<Button>(true)
+            .FirstOrDefault(b => b.name.ToLower().Contains("quit"));
+
+        if (quitButton != null)
+        {
+            quitButton.onClick.AddListener(QuitGame);
+        }
 
         float savedMusic = PlayerPrefs.GetFloat(MusicKey, 1f);
         float savedSfx = PlayerPrefs.GetFloat(SfxKey, 1f);
 
-        if (musicSlider != null) musicSlider.value = savedMusic;
-        if (sfxSlider != null) sfxSlider.value = savedSfx;
+        if (musicSlider != null)
+        {
+            musicSlider.value = savedMusic;
+        }
+
+        if (sfxSlider != null)
+        {
+            sfxSlider.value = savedSfx;
+        }
 
         ApplyVolumeToMixer(musicParam, savedMusic);
         ApplyVolumeToMixer(sfxParam, savedSfx);
@@ -111,19 +138,25 @@ public class SettingsMenu : MonoBehaviour
 
     private void Update()
     {
-        // PC keyboard toggle
         if (toggleKey != KeyCode.None && Input.GetKeyDown(toggleKey))
         {
+            if (useAndroidBackButton && toggleKey == KeyCode.Escape && panelInstance != null && panelInstance.activeSelf)
+            {
+                Close();
+                return;
+            }
+
             Toggle();
         }
 
-        if (useAndroidBackButton && Input.GetKeyDown(KeyCode.Escape))
+        if (useAndroidBackButton && toggleKey != KeyCode.Escape && Input.GetKeyDown(KeyCode.Escape))
         {
             if (panelInstance != null && panelInstance.activeSelf)
             {
                 Close();
             }
         }
+
         if (tapOutsideToClose && panelInstance != null && panelInstance.activeSelf)
         {
             HandleTapOutsideToClose();
@@ -132,10 +165,10 @@ public class SettingsMenu : MonoBehaviour
 
     private void HandleTapOutsideToClose()
     {
-        // Check for touch
         if (Input.touchCount > 0)
         {
             Touch touch = Input.GetTouch(0);
+
             if (touch.phase == TouchPhase.Began)
             {
                 if (!IsTouchOverPanel(touch.position))
@@ -144,7 +177,6 @@ public class SettingsMenu : MonoBehaviour
                 }
             }
         }
-        // Check for mouse click
         else if (Input.GetMouseButtonDown(0))
         {
             if (!IsTouchOverPanel(Input.mousePosition))
@@ -156,39 +188,91 @@ public class SettingsMenu : MonoBehaviour
 
     private bool IsTouchOverPanel(Vector2 screenPosition)
     {
-        if (panelRect == null) return false;
+        if (panelRect == null)
+        {
+            return false;
+        }
 
         return RectTransformUtility.RectangleContainsScreenPoint(panelRect, screenPosition, null);
     }
 
     public void Open()
     {
-        if (panelInstance == null) return;
-        if (panelInstance.activeSelf) return;
+        if (panelInstance == null)
+        {
+            return;
+        }
+
+        if (panelInstance.activeSelf)
+        {
+            return;
+        }
 
         panelInstance.SetActive(true);
 
-        if (pauseOnOpen) Time.timeScale = 0f;
-        if (lockPlayerInputOnOpen) TrySetPlayerInputLocked(true);
+        if (pauseOnOpen)
+        {
+            Time.timeScale = 0f;
+        }
+
+        if (lockPlayerInputOnOpen)
+        {
+            TrySetPlayerInputLocked(true);
+        }
     }
 
     public void Close()
     {
-        if (panelInstance == null) return;
-        if (!panelInstance.activeSelf) return;
+        if (panelInstance == null)
+        {
+            return;
+        }
+
+        if (!panelInstance.activeSelf)
+        {
+            return;
+        }
 
         panelInstance.SetActive(false);
 
-        if (pauseOnOpen) Time.timeScale = 1f;
-        if (lockPlayerInputOnOpen) TrySetPlayerInputLocked(false);
+        if (pauseOnOpen)
+        {
+            Time.timeScale = 1f;
+        }
+
+        if (lockPlayerInputOnOpen)
+        {
+            TrySetPlayerInputLocked(false);
+        }
     }
 
     public void Toggle()
     {
-        if (panelInstance == null) return;
+        if (panelInstance == null)
+        {
+            return;
+        }
 
-        if (panelInstance.activeSelf) Close();
-        else Open();
+        if (panelInstance.activeSelf)
+        {
+            Close();
+        }
+        else
+        {
+            Open();
+        }
+    }
+
+    public void QuitGame()
+    {
+        Time.timeScale = 1f;
+        PlayerPrefs.Save();
+
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
     }
 
     private void SetMusicVolumeFromSlider(float v)
@@ -205,7 +289,10 @@ public class SettingsMenu : MonoBehaviour
 
     private void ApplyVolumeToMixer(string param, float slider01)
     {
-        if (mixer == null) return;
+        if (mixer == null)
+        {
+            return;
+        }
 
         float clamped = Mathf.Clamp(slider01, 0.0001f, 1f);
         float dB = Mathf.Log10(clamped) * 20f;
@@ -215,11 +302,17 @@ public class SettingsMenu : MonoBehaviour
     private void TrySetPlayerInputLocked(bool locked)
     {
         var type = System.Type.GetType("PlayerController");
-        if (type == null) return;
 
-        var field = type.GetField("IsInputLocked",
+        if (type == null)
+        {
+            return;
+        }
+
+        var field = type.GetField(
+            "IsInputLocked",
             System.Reflection.BindingFlags.Public |
-            System.Reflection.BindingFlags.Static);
+            System.Reflection.BindingFlags.Static
+        );
 
         if (field != null && field.FieldType == typeof(bool))
         {
