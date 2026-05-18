@@ -15,7 +15,7 @@ MonoBehaviour:
   id: Jewell
   displayName: Jewellery Box Recipe
   icon: {fileID: -124080745, guid: 0529001915e1a8b43bf7e5c1d6e1eb50, type: 3}
-  price: 10
+  price: 100
   type: 3
   item: {fileID: 11400000, guid: f2fd7fe0610595745857c011ddd169ca, type: 2}
   itemCount: 1

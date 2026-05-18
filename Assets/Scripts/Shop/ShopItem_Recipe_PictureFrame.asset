@@ -15,7 +15,7 @@ MonoBehaviour:
   id: Picture
   displayName: Picture Frame Recipe
   icon: {fileID: -1103552306, guid: 0529001915e1a8b43bf7e5c1d6e1eb50, type: 3}
-  price: 10
+  price: 100
   type: 3
   item: {fileID: 11400000, guid: e704a74363b0df949bf3c03800733f0d, type: 2}
   itemCount: 1

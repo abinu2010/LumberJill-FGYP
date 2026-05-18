@@ -15,7 +15,7 @@ MonoBehaviour:
   id: ChopBoard
   displayName: Chopping Board Recipe
   icon: {fileID: 1196167595, guid: 0529001915e1a8b43bf7e5c1d6e1eb50, type: 3}
-  price: 10
+  price: 100
   type: 3
   item: {fileID: 11400000, guid: 4c55580ed9cd4ef4694685e13792a63b, type: 2}
   itemCount: 1

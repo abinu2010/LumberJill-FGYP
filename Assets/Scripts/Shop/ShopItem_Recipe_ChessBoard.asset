@@ -15,7 +15,7 @@ MonoBehaviour:
   id: ChessBoard
   displayName: Chess Board Recipe
   icon: {fileID: -1740263451, guid: 0529001915e1a8b43bf7e5c1d6e1eb50, type: 3}
-  price: 10
+  price: 65
   type: 3
   item: {fileID: 11400000, guid: 275dd5f0dd153b2478358ab65f7b9a49, type: 2}
   itemCount: 1

@@ -15,7 +15,7 @@ MonoBehaviour:
   id: LaserCutter
   displayName: Laser Cutting Machine
   icon: {fileID: -760612833, guid: 6ac721c3c2b379146b651ac960835f7a, type: 3}
-  price: 10
+  price: 200
   type: 1
   item: {fileID: 0}
   itemCount: 1

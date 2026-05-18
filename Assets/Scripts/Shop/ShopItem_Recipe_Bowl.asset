@@ -15,7 +15,7 @@ MonoBehaviour:
   id: Bowl
   displayName: Bowl Recipe
   icon: {fileID: -1627678155, guid: 0529001915e1a8b43bf7e5c1d6e1eb50, type: 3}
-  price: 10
+  price: 65
   type: 3
   item: {fileID: 11400000, guid: 5eb66e24ce50df849a2ea55a08d5901f, type: 2}
   itemCount: 1

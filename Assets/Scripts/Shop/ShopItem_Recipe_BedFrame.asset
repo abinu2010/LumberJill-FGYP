@@ -15,7 +15,7 @@ MonoBehaviour:
   id: Bed
   displayName: Bed Frame Recipe
   icon: {fileID: 1139096564, guid: 0529001915e1a8b43bf7e5c1d6e1eb50, type: 3}
-  price: 10
+  price: 65
   type: 3
   item: {fileID: 11400000, guid: 07bfe33abf56246428045208aa2ee012, type: 2}
   itemCount: 1

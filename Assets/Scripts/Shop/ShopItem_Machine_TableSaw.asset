@@ -15,7 +15,7 @@ MonoBehaviour:
   id: TableSaw
   displayName: Table Saw Machine
   icon: {fileID: 1868064900, guid: 6ac721c3c2b379146b651ac960835f7a, type: 3}
-  price: 10
+  price: 140
   type: 1
   item: {fileID: 0}
   itemCount: 1

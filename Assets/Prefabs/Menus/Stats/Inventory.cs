@@ -3,7 +3,7 @@ using TMPro;
 
 public class Inventory : MonoBehaviour
 {
-    public float money { get; set; } = 5000f;
+    public float money { get; set; } = 2000f;
     public int xp { get; set; }
     public int lumber { get; set; }
     public int gold { get; set; }
@@ -21,8 +21,8 @@ public class Inventory : MonoBehaviour
 
     public void LoadFromPrefs()
     {
-        money = PlayerPrefs.GetFloat("Money", 5000f);
-        xp = PlayerPrefs.GetInt("Xp", 50);
+        money = PlayerPrefs.GetFloat("Money", 2000f);
+        xp = PlayerPrefs.GetInt("Xp", 0);   
         lumber = PlayerPrefs.GetInt("Lumber", 20);
         gold = PlayerPrefs.GetInt("Gold", 1000);
         copper = PlayerPrefs.GetInt("Copper", 0);

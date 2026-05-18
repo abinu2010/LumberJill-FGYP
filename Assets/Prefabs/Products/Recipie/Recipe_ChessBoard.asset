@@ -19,8 +19,8 @@ MonoBehaviour:
   slots:
   - slotId: Board
     label: Board
-    requiredWidth: 4
-    requiredHeight: 4
+    requiredWidth: 8
+    requiredHeight: 8
   unlockedByDefault: 0
   unlockCost: 25
   hintSprite: {fileID: -1740263451, guid: 0529001915e1a8b43bf7e5c1d6e1eb50, type: 3}

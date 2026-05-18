@@ -15,7 +15,7 @@ MonoBehaviour:
   id: Cupboard
   displayName: Cupboard Recipe
   icon: {fileID: 2007593058, guid: 0529001915e1a8b43bf7e5c1d6e1eb50, type: 3}
-  price: 10
+  price: 100
   type: 3
   item: {fileID: 11400000, guid: 1431fe71eb7cc004fb70118c9bb1e0e4, type: 2}
   itemCount: 1

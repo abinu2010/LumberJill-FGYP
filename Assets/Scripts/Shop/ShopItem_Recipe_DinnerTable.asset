@@ -15,7 +15,7 @@ MonoBehaviour:
   id: Dinner
   displayName: Dinner Table Recipe
   icon: {fileID: -1037646494, guid: 0529001915e1a8b43bf7e5c1d6e1eb50, type: 3}
-  price: 10
+  price: 100
   type: 3
   item: {fileID: 11400000, guid: 3cd1ea5c11afa20408b51720cf4bcb28, type: 2}
   itemCount: 1

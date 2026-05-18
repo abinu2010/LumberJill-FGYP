@@ -15,7 +15,7 @@ MonoBehaviour:
   id: Coat
   displayName: Coat Hanger Recipe
   icon: {fileID: -1186859292, guid: 0529001915e1a8b43bf7e5c1d6e1eb50, type: 3}
-  price: 10
+  price: 100
   type: 3
   item: {fileID: 11400000, guid: c1fe39744743f6d45a41e4a4a5ae234b, type: 2}
   itemCount: 1

@@ -15,7 +15,7 @@ MonoBehaviour:
   id: Coasters
   displayName: Coasters Recipe
   icon: {fileID: -1682907721, guid: 0529001915e1a8b43bf7e5c1d6e1eb50, type: 3}
-  price: 10
+  price: 100
   type: 3
   item: {fileID: 11400000, guid: 8ff54d506c75fd84d85bffc599212901, type: 2}
   itemCount: 1

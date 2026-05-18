@@ -15,7 +15,7 @@ MonoBehaviour:
   id: Tool
   displayName: Tool Box Recipe
   icon: {fileID: -265155346, guid: 0529001915e1a8b43bf7e5c1d6e1eb50, type: 3}
-  price: 10
+  price: 100
   type: 3
   item: {fileID: 11400000, guid: b002316489dabf048a7060138e5739a6, type: 2}
   itemCount: 1

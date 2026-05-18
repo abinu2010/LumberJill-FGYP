@@ -15,7 +15,7 @@ MonoBehaviour:
   id: Shelf
   displayName: Shelf Recipe
   icon: {fileID: 1526619182, guid: 0529001915e1a8b43bf7e5c1d6e1eb50, type: 3}
-  price: 10
+  price: 100
   type: 3
   item: {fileID: 11400000, guid: 55ab5dd71c31bde4a8204eaaf33a9f23, type: 2}
   itemCount: 1

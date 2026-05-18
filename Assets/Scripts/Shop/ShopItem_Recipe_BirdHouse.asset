@@ -15,7 +15,7 @@ MonoBehaviour:
   id: Bird
   displayName: Bird House Recipe
   icon: {fileID: -2021232642, guid: 0529001915e1a8b43bf7e5c1d6e1eb50, type: 3}
-  price: 10
+  price: 65
   type: 3
   item: {fileID: 11400000, guid: c09098d23236549469698fec8473d54f, type: 2}
   itemCount: 1

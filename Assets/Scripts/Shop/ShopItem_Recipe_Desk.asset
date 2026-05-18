@@ -15,7 +15,7 @@ MonoBehaviour:
   id: Desk
   displayName: Desk Recipe
   icon: {fileID: -291503089, guid: 0529001915e1a8b43bf7e5c1d6e1eb50, type: 3}
-  price: 10
+  price: 100
   type: 3
   item: {fileID: 11400000, guid: 5ba09b4ded0186045bc7dd8e58d1fc47, type: 2}
   itemCount: 1

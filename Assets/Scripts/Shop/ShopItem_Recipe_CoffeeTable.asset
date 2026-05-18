@@ -15,7 +15,7 @@ MonoBehaviour:
   id: Coffee
   displayName: Coffee Table Recipe
   icon: {fileID: -2019726472, guid: 0529001915e1a8b43bf7e5c1d6e1eb50, type: 3}
-  price: 10
+  price: 100
   type: 3
   item: {fileID: 11400000, guid: bf63382b5755e4a45bf03b74f145a893, type: 2}
   itemCount: 1

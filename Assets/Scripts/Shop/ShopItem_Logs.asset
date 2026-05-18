@@ -15,9 +15,10 @@ MonoBehaviour:
   id: Log
   displayName: Log
   icon: {fileID: -942766337, guid: 767311ea5efcf3d4e9643afec4021f6c, type: 3}
-  price: 10
+  price: 30
   type: 0
   item: {fileID: 11400000, guid: 777eb4c0e0642d045b5077f1db84c59d, type: 2}
   itemCount: 1
   prefabToPlace: {fileID: 0}
   recipeToUnlock: {fileID: 0}
+  singlePurchase: 0

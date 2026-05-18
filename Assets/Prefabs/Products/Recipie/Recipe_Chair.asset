@@ -25,6 +25,18 @@ MonoBehaviour:
     label: Leg
     requiredWidth: 1
     requiredHeight: 1
+  - slotId: Leg
+    label: Leg
+    requiredWidth: 1
+    requiredHeight: 1
+  - slotId: Leg
+    label: Leg
+    requiredWidth: 1
+    requiredHeight: 1
+  - slotId: Leg
+    label: Leg
+    requiredWidth: 1
+    requiredHeight: 1
   unlockedByDefault: 0
   unlockCost: 50
   hintSprite: {fileID: 1128375832, guid: 0529001915e1a8b43bf7e5c1d6e1eb50, type: 3}

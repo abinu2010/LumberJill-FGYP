@@ -15,7 +15,7 @@ MonoBehaviour:
   id: Chair
   displayName: Chair Recipe
   icon: {fileID: 1128375832, guid: 0529001915e1a8b43bf7e5c1d6e1eb50, type: 3}
-  price: 10
+  price: 65
   type: 3
   item: {fileID: 11400000, guid: f311d6627e17d20419101a8823e10a02, type: 2}
   itemCount: 1
